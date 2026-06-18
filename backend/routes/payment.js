@@ -11,10 +11,26 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-const razorpay = new Razorpay({
-  key_id:     process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+// Only construct the Razorpay client if BOTH keys are present.
+// Launching UPI-only for now — online card payments stay disabled until the
+// keys are configured, and the server must boot fine without them.
+let razorpay = null;
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+  razorpay = new Razorpay({
+    key_id:     process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET
+  });
+} else {
+  console.warn('Razorpay keys not set — payment routes disabled');
+}
+
+// Returned by Razorpay-backed routes when the client is not configured.
+function razorpayDisabled(res) {
+  return res.status(503).json({
+    success: false,
+    message: 'Online card payments are not enabled yet. Please use UPI.'
+  });
+}
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -194,6 +210,8 @@ function adminEnrollmentHtml({ studentName, studentEmail, studentWhatsapp, cours
 
 // ── POST /api/payment/create-order ────────────────────────────────────────────
 router.post('/create-order', verifyToken, async (req, res) => {
+  if (!razorpay) return razorpayDisabled(res);
+
   const { course_id } = req.body;
   if (!course_id) return fail(res, 'course_id is required');
 
@@ -284,6 +302,8 @@ router.post('/create-order', verifyToken, async (req, res) => {
 
 // ── POST /api/payment/verify ──────────────────────────────────────────────────
 router.post('/verify', verifyToken, async (req, res) => {
+  if (!razorpay) return razorpayDisabled(res);
+
   const { razorpay_order_id, razorpay_payment_id, razorpay_signature, enrollment_id } = req.body;
 
   if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !enrollment_id) {
