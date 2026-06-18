@@ -1237,11 +1237,10 @@
 <script>
 /* ── API config ──
    Local dev hits localhost; anything else (Netlify, custom domain) hits the
-   deployed backend. TODO: replace REPLACE_WITH_RENDER_URL with the real Render
-   service URL once the backend is deployed (e.g. openclimb-api.onrender.com). */
+   deployed backend on Render. */
 const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
   ? 'http://localhost:5000/api'
-  : 'https://REPLACE_WITH_RENDER_URL/api';
+  : 'https://openclimb-api.onrender.com/api';
 function getToken() { return localStorage.getItem('oca_token'); }
 function getUser()  { return JSON.parse(localStorage.getItem('oca_user') || '{}'); }
 function logout()   { localStorage.clear(); window.location.href = 'index.html'; }
