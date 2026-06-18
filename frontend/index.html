@@ -1226,13 +1226,53 @@
   <div class="modal-box" style="max-width:380px">
     <div class="success-box">
       <div class="success-icon">✈️</div>
-      <h3>Enrollment Confirmed!</h3>
-      <p>Your payment was successful. Capt. Jay Kotecha will reach out within 24 hours with your course schedule.</p>
+      <h3>Payment Recorded!</h3>
+      <p>Thanks! We've received your payment details. Capt. Jay Kotecha will verify your UPI reference and confirm your enrollment within 24 hours.</p>
       <button class="btn btn-gold" style="width:100%;padding:13px" onclick="window.location.href='dashboard.html'">GO TO DASHBOARD →</button>
     </div>
   </div>
 </div>
 
+<!-- UPI PAYMENT MODAL (primary) -->
+<style>
+  .upi-amount { text-align:center; font-size:0.92rem; color:var(--muted); margin-bottom:14px; }
+  .upi-amount strong { color:var(--ink); font-size:1.18rem; }
+  .upi-qr { display:flex; align-items:center; justify-content:center; width:fit-content; min-height:170px; margin:0 auto 16px; padding:14px; background:#fff; border:1px solid #e8edf5; border-radius:12px; }
+  .upi-qr img, .upi-qr canvas { display:block; }
+  .upi-idbox { display:flex; align-items:center; justify-content:space-between; gap:12px; background:#f4f7fb; border:1px solid #e8edf5; border-radius:10px; padding:11px 14px; margin-bottom:12px; }
+  .upi-idbox-label { font-size:0.66rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); }
+  .upi-idbox-val { font-family:monospace; font-size:0.95rem; color:var(--ink); font-weight:600; word-break:break-all; }
+  .upi-hint { font-size:0.77rem; color:var(--muted); line-height:1.6; margin:0 0 14px; }
+</style>
+<div class="overlay" id="upiOverlay">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-head">
+      <h3>Pay via UPI</h3>
+      <p id="upiCourseSub">Scan &amp; pay, then enter your reference</p>
+      <button class="modal-x" onclick="closeUpiModal()">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="upi-amount">Amount to pay: <strong id="upiAmount">₹0</strong></div>
+      <div class="upi-qr" id="upiQr"></div>
+      <div class="upi-idbox">
+        <div>
+          <div class="upi-idbox-label">UPI ID</div>
+          <div class="upi-idbox-val" id="upiIdText">—</div>
+        </div>
+        <button class="btn btn-outline-light btn-sm" id="upiCopyBtn" onclick="copyUpiId()" style="color:var(--ink);border-color:rgba(0,0,0,0.2)">Copy</button>
+      </div>
+      <p class="upi-hint">Open any UPI app (GPay / PhonePe / Paytm), scan the QR or pay to the ID above, then enter the UTR / reference number from your payment confirmation.</p>
+      <div class="modal-fgroup"><label>UPI Reference / UTR Number *</label><input id="upiUtr" placeholder="e.g. 412345678901" onkeydown="if(event.key==='Enter')submitUpiClaim()"/></div>
+      <div class="modal-msg" id="upiMsg"></div>
+      <button class="btn btn-gold" style="width:100%;padding:13px" id="upiPaidBtn" onclick="submitUpiClaim()">I've Paid</button>
+      <button class="btn btn-outline-light btn-sm" style="width:100%;margin-top:10px;color:var(--ink);border-color:rgba(0,0,0,0.15);opacity:0.55;cursor:not-allowed" disabled title="Coming soon">Card / Netbanking — coming soon</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR code generator (client-side; no image file needed) -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<!-- Razorpay kept as an optional secondary, currently disabled on the backend -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
 /* ── API config ──
@@ -1423,23 +1463,87 @@ function renderStaticCourses(grid) {
     </div>`).join('');
 }
 
-/* ── Enrollment ── */
+/* ── Enrollment — UPI is the primary payment method ── */
 async function enrollCourse(courseId, courseName, btn) {
   if (!getToken()) { sessionStorage.setItem('pendingCourse', courseId); openAuthModal('register'); return; }
   const orig = btn.textContent;
   btn.disabled = true; btn.textContent = 'Processing…';
   try {
-    const json = await apiCall('/payment/create-order', 'POST', { course_id: courseId });
-    if (!json.success) {
-      btn.disabled = false; btn.textContent = orig;
-      if (json.message?.includes('already enrolled')) { alert(json.message); window.location.href = 'dashboard.html'; return; }
-      alert(json.message || 'Could not create order.'); return;
-    }
+    const json = await apiCall('/payment/upi-init', 'POST', { course_id: courseId });
     btn.disabled = false; btn.textContent = orig;
-    openRazorpay(json.data);
+    if (!json.success) {
+      if (json.message?.includes('already enrolled')) { alert(json.message); window.location.href = 'dashboard.html'; return; }
+      alert(json.message || 'Could not start payment.'); return;
+    }
+    openUpiModal(json.data);
   } catch { btn.disabled = false; btn.textContent = orig; alert('Network error. Please try again.'); }
 }
 
+/* ── UPI payment flow ── */
+let currentUpi = null;
+
+function openUpiModal({ enrollment_id, amount, course_name, upi_id, payee_name }) {
+  currentUpi = { enrollment_id };
+  const rupees = amount / 100;
+  document.getElementById('upiAmount').textContent     = '₹' + rupees.toLocaleString('en-IN');
+  document.getElementById('upiCourseSub').textContent  = course_name || 'Scan & pay, then enter your reference';
+  document.getElementById('upiIdText').textContent     = upi_id;
+  document.getElementById('upiUtr').value              = '';
+  document.getElementById('upiCopyBtn').textContent    = 'Copy';
+  const msg = document.getElementById('upiMsg'); msg.className = 'modal-msg'; msg.textContent = '';
+
+  // Build the UPI deep link and render a QR from it client-side — no image file.
+  const link = `upi://pay?pa=${encodeURIComponent(upi_id)}&pn=${encodeURIComponent(payee_name || 'Open Climb Aviation')}&am=${rupees.toFixed(2)}&cu=INR`;
+  const qrBox = document.getElementById('upiQr');
+  qrBox.innerHTML = '';
+  if (window.QRCode) {
+    new QRCode(qrBox, { text: link, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
+  } else {
+    qrBox.innerHTML = `<a href="${link}" style="color:var(--gold);font-weight:600">Tap to pay via your UPI app →</a>`;
+  }
+
+  document.getElementById('upiOverlay').classList.add('open');
+}
+
+function closeUpiModal() {
+  document.getElementById('upiOverlay').classList.remove('open');
+  currentUpi = null;
+}
+document.getElementById('upiOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeUpiModal(); });
+
+function copyUpiId() {
+  const id = document.getElementById('upiIdText').textContent;
+  navigator.clipboard?.writeText(id).then(() => {
+    const b = document.getElementById('upiCopyBtn'); b.textContent = 'Copied!';
+    setTimeout(() => { b.textContent = 'Copy'; }, 1600);
+  }).catch(() => {});
+}
+
+async function submitUpiClaim() {
+  if (!currentUpi) return;
+  const msg = document.getElementById('upiMsg');
+  const utr = document.getElementById('upiUtr').value.trim();
+  msg.className = 'modal-msg';
+  if (!utr) { msg.className = 'modal-msg err'; msg.textContent = 'Please enter your UPI reference (UTR) number.'; return; }
+
+  const btn = document.getElementById('upiPaidBtn');
+  const orig = btn.textContent; btn.disabled = true; btn.textContent = 'Submitting…';
+  try {
+    const json = await apiCall('/payment/upi-claim', 'POST', { enrollment_id: currentUpi.enrollment_id, utr });
+    btn.disabled = false; btn.textContent = orig;
+    if (json.success) {
+      closeUpiModal();
+      document.getElementById('successOverlay').classList.add('open');
+    } else {
+      msg.className = 'modal-msg err'; msg.textContent = (json.errors?.[0]?.message) || json.message || 'Could not record your payment.';
+    }
+  } catch {
+    btn.disabled = false; btn.textContent = orig;
+    msg.className = 'modal-msg err'; msg.textContent = 'Network error. Please try again.';
+  }
+}
+
+/* Razorpay — optional secondary, disabled on the backend for now (kept for later). */
 function openRazorpay({ order_id, amount, currency, key_id, enrollment_id, course_name, user_name, user_email }) {
   const rzp = new window.Razorpay({
     key: key_id, amount, currency,

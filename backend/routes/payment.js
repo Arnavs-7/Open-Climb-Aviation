@@ -32,6 +32,12 @@ function razorpayDisabled(res) {
   });
 }
 
+// ── UPI config (primary payment method) ───────────────────────────────────────
+// Students pay directly to Jay's UPI ID and submit the UTR reference, which we
+// record against the enrollment and email to the admin for manual confirmation.
+const UPI_ID    = process.env.UPI_ID    || '9479959933@hdfc';
+const UPI_PAYEE = process.env.UPI_PAYEE || 'Open Climb Aviation';
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -196,6 +202,58 @@ function adminEnrollmentHtml({ studentName, studentEmail, studentWhatsapp, cours
     </table>
     <p style="margin:22px 0 0;color:#888;font-size:12px;">
       Manage this enrollment in your <a href="${process.env.FRONTEND_URL || '#'}/admin.html" style="color:#2196f3;">admin panel</a>.
+    </p>
+  </td></tr>
+  <tr><td style="background:#0d1b2a;border-radius:0 0 14px 14px;padding:18px 36px;text-align:center;">
+    <p style="margin:0;color:rgba(255,255,255,0.35);font-size:12px;">&copy; 2025 Open Climb Aviation</p>
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+}
+
+function adminUpiClaimHtml({ studentName, studentEmail, studentWhatsapp, courseName, amount, utr }) {
+  const rows = [
+    ['Student Name',  studentName     || '—'],
+    ['Email',         studentEmail    || '—'],
+    ['WhatsApp',      studentWhatsapp || '—'],
+    ['Course',        courseName      || '—'],
+    ['Amount',        fmtInr(amount)],
+    ['UPI Ref (UTR)', utr             || '—'],
+    ['Paid To',       `${UPI_PAYEE} (${UPI_ID})`],
+    ['Claimed At',    new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })]
+  ];
+  const tableRows = rows.map(([label, value]) => `
+    <tr>
+      <td style="padding:11px 16px;background:#f4f7fb;font-weight:600;color:#0d1b2a;font-size:13px;width:35%;border-bottom:1px solid #e8edf5;">${label}</td>
+      <td style="padding:11px 16px;color:#444;font-size:13px;border-bottom:1px solid #e8edf5;">${value}</td>
+    </tr>`).join('');
+
+  return `
+<!DOCTYPE html>
+<html>
+<body style="margin:0;padding:0;background:#f4f7fb;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7fb;padding:40px 0;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+  <tr><td style="background:#0d1b2a;border-radius:14px 14px 0 0;padding:28px 36px;">
+    <h2 style="margin:0;color:#f5a623;font-size:20px;">&#128241; UPI Payment Claimed — Action Needed</h2>
+    <p style="margin:6px 0 0;color:rgba(255,255,255,0.5);font-size:12px;">Open Climb Aviation — Admin Notification</p>
+  </td></tr>
+  <tr><td style="background:#f5a623;padding:14px 36px;">
+    <p style="margin:0;color:#0d1b2a;font-size:14px;font-weight:700;">${studentName} says they paid ${fmtInr(amount)} for ${courseName}</p>
+  </td></tr>
+  <tr><td style="background:#fff;padding:32px 36px;">
+    <p style="color:#555;margin:0 0 20px;line-height:1.7;font-size:14px;">
+      A student submitted a UPI payment claim. <strong>Please verify the UTR in your bank/UPI app</strong>, then mark the enrollment active in the admin panel.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8edf5;border-radius:8px;overflow:hidden;">
+      ${tableRows}
+    </table>
+    <p style="margin:22px 0 0;color:#888;font-size:12px;">
+      Open the <a href="${process.env.FRONTEND_URL || '#'}/admin.html" style="color:#2196f3;">admin panel</a> to confirm and activate.
     </p>
   </td></tr>
   <tr><td style="background:#0d1b2a;border-radius:0 0 14px 14px;padding:18px 36px;text-align:center;">
@@ -423,6 +481,125 @@ router.get('/my-enrollments', verifyToken, async (req, res) => {
   }
 
   return ok(res, { enrollments: data || [] }, 'Enrollments fetched successfully.');
+});
+
+// ── POST /api/payment/upi-init ────────────────────────────────────────────────
+// Primary payment method. Creates/reuses a pending enrollment and returns the
+// details the browser needs to render the UPI QR code and pay-to box.
+router.post('/upi-init', verifyToken, async (req, res) => {
+  const { course_id } = req.body;
+  if (!course_id) return fail(res, 'course_id is required');
+
+  // 1. Fetch course
+  const { data: course, error: courseErr } = await supabase
+    .from('courses')
+    .select('id, name, price, duration_days')
+    .eq('id', course_id)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  if (courseErr || !course) return fail(res, 'Course not found.', [], 404);
+
+  // 2. Block if already enrolled (paid/active/completed). Allow pending and
+  //    payment_claimed to continue so a student can re-show the QR / re-submit.
+  const { data: existing } = await supabase
+    .from('enrollments')
+    .select('id, status')
+    .eq('user_id', req.user.id)
+    .eq('course_id', course_id)
+    .maybeSingle();
+
+  if (existing && ['paid', 'active', 'completed'].includes(existing.status)) {
+    return fail(res, `You are already enrolled in this course (status: ${existing.status}).`, [], 409);
+  }
+
+  // 3. Create or reuse enrollment
+  let enrollmentId;
+  if (existing) {
+    enrollmentId = existing.id;
+  } else {
+    const { data: newEnr, error: enrErr } = await supabase
+      .from('enrollments')
+      .insert({ user_id: req.user.id, course_id, status: 'pending' })
+      .select('id')
+      .single();
+    if (enrErr) {
+      console.error('Enrollment insert error:', enrErr);
+      return fail(res, 'Failed to create enrollment. Please try again.', [], 500);
+    }
+    enrollmentId = newEnr.id;
+  }
+
+  return ok(res, {
+    enrollment_id: enrollmentId,
+    amount:        course.price,            // paise
+    course_name:   course.name,
+    upi_id:        UPI_ID,
+    payee_name:    UPI_PAYEE,
+    user_name:     req.user.name,
+    user_email:    req.user.email
+  }, 'UPI payment details ready.');
+});
+
+// ── POST /api/payment/upi-claim ───────────────────────────────────────────────
+// Student confirms they paid and submits their UPI reference (UTR). We mark the
+// enrollment "payment_claimed" and email the admin to verify & activate.
+router.post('/upi-claim', verifyToken, async (req, res) => {
+  const { enrollment_id } = req.body;
+  const utr = (req.body.utr || '').toString().trim();
+
+  if (!enrollment_id) return fail(res, 'enrollment_id is required.');
+  if (!utr)           return fail(res, 'Please enter your UPI reference (UTR) number.');
+  if (!/^[A-Za-z0-9]{6,30}$/.test(utr)) {
+    return fail(res, 'That UTR doesn\'t look right. Enter the reference number from your UPI app (digits/letters only).');
+  }
+
+  // 1. Load the enrollment (must belong to this user) + course details for email
+  const { data: enrollment, error: enrErr } = await supabase
+    .from('enrollments')
+    .select('id, status, courses(name, price)')
+    .eq('id', enrollment_id)
+    .eq('user_id', req.user.id)
+    .maybeSingle();
+
+  if (enrErr || !enrollment) return fail(res, 'Enrollment not found.', [], 404);
+
+  if (['paid', 'active', 'completed'].includes(enrollment.status)) {
+    return fail(res, `This enrollment is already ${enrollment.status}.`, [], 409);
+  }
+
+  // 2. Record the claim
+  const { error: updErr } = await supabase
+    .from('enrollments')
+    .update({ status: 'payment_claimed', upi_utr: utr })
+    .eq('id', enrollment_id)
+    .eq('user_id', req.user.id);
+
+  if (updErr) {
+    console.error('UPI claim update error:', updErr);
+    return fail(res, 'Failed to record your payment claim. Please try again.', [], 500);
+  }
+
+  const courseName  = enrollment?.courses?.name  || 'your course';
+  const coursePrice = enrollment?.courses?.price || 0;
+
+  // 3. Email the admin to verify the UTR — non-blocking
+  transporter.sendMail({
+    from:    `"Open Climb Aviation" <${process.env.EMAIL_USER}>`,
+    to:      process.env.ADMIN_EMAIL,
+    subject: `UPI Payment Claimed — ${req.user.name} (₹${(coursePrice / 100).toLocaleString('en-IN')})`,
+    html:    adminUpiClaimHtml({
+      studentName:     req.user.name,
+      studentEmail:    req.user.email,
+      studentWhatsapp: req.user.whatsapp,
+      courseName,
+      amount:          coursePrice,
+      utr
+    })
+  }).catch(err => console.error('Admin UPI-claim email failed:', err.message));
+
+  return ok(res, { enrollment_id, status: 'payment_claimed' },
+    'Thanks! We\'ve recorded your payment. Capt. Jay will verify and confirm your enrollment shortly.');
 });
 
 module.exports = router;

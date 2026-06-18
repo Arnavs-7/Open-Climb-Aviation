@@ -149,7 +149,7 @@ router.get('/students', async (req, res) => {
 });
 
 // ── GET /api/admin/enrollments ────────────────────────────────────────────────
-const ENROLLMENT_STATUSES = ['pending', 'paid', 'active', 'completed'];
+const ENROLLMENT_STATUSES = ['pending', 'payment_claimed', 'paid', 'active', 'completed'];
 
 router.get('/enrollments', [
   query('status').optional().isIn(ENROLLMENT_STATUSES)
@@ -160,7 +160,7 @@ router.get('/enrollments', [
   try {
     let q = supabase
       .from('enrollments')
-      .select('id, status, enrolled_at, payment_id, users(id, name, email, whatsapp, age), courses(id, name, price, duration_days)')
+      .select('id, status, enrolled_at, payment_id, upi_utr, users(id, name, email, whatsapp, age), courses(id, name, price, duration_days)')
       .order('enrolled_at', { ascending: false });
 
     if (req.query.status) q = q.eq('status', req.query.status);

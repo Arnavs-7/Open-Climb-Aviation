@@ -116,6 +116,7 @@
     .badge { display: inline-block; padding: 3px 10px; border-radius: 2px; font-size: 0.65rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
     .badge-active    { background: var(--gold-pale); color: var(--gold); }
     .badge-pending   { background: var(--bg-alt);    color: var(--muted); }
+    .badge-payment_claimed { background: #FEF3C7;     color: #92400E; }
     .badge-paid      { background: #D4EDDA;           color: #1E7E34; }
     .badge-completed { background: #E2E3E5;           color: #495057; }
     .badge-new       { background: #FEF3C7;           color: #92400E; }
@@ -275,6 +276,7 @@
           <select class="filter-select" id="enrFilter" onchange="loadEnrollments()">
             <option value="">All Statuses</option>
             <option value="pending">Pending</option>
+            <option value="payment_claimed">Payment Claimed</option>
             <option value="paid">Paid</option>
             <option value="active">Active</option>
             <option value="completed">Completed</option>
@@ -477,14 +479,15 @@
               </td>
               <td>${e.courses?.name || '—'}</td>
               <td>${fmtPaise(e.courses?.price)}</td>
-              <td class="mono">${e.payment_id ? e.payment_id.slice(0,16)+'…' : '—'}</td>
+              <td class="mono">${e.upi_utr ? 'UTR: '+e.upi_utr : (e.payment_id ? e.payment_id.slice(0,16)+'…' : '—')}</td>
               <td>${fmt(e.enrolled_at)}</td>
               <td>
                 <select class="status-sel" onchange="patchEnrollment('${e.id}',this.value)">
-                  <option value="pending"   ${e.status==='pending'   ?'selected':''}>Pending</option>
-                  <option value="paid"      ${e.status==='paid'      ?'selected':''}>Paid</option>
-                  <option value="active"    ${e.status==='active'    ?'selected':''}>Active</option>
-                  <option value="completed" ${e.status==='completed' ?'selected':''}>Completed</option>
+                  <option value="pending"         ${e.status==='pending'         ?'selected':''}>Pending</option>
+                  <option value="payment_claimed" ${e.status==='payment_claimed' ?'selected':''}>Payment Claimed</option>
+                  <option value="paid"            ${e.status==='paid'            ?'selected':''}>Paid</option>
+                  <option value="active"          ${e.status==='active'          ?'selected':''}>Active</option>
+                  <option value="completed"       ${e.status==='completed'       ?'selected':''}>Completed</option>
                 </select>
               </td>
             </tr>`).join('')
