@@ -1,0 +1,45 @@
+# Render Blueprint for the Open Climb Aviation backend API.
+# Docs: https://render.com/docs/blueprint-spec
+#
+# How to use: in the Render dashboard → New → Blueprint, connect this GitHub
+# repo. Render reads this file and provisions the service below. Because the
+# Express app lives in the `backend/` subfolder, rootDir is set accordingly.
+#
+# After it deploys, fill in the env vars marked `sync: false` (they are secrets
+# and are intentionally NOT stored in git) under the service's Environment tab.
+
+services:
+  - type: web
+    name: openclimb-aviation-api
+    runtime: node
+    plan: free                 # free tier: spins down after ~15 min idle (see keep-alive note)
+    region: singapore          # closest free region to India; change if you prefer
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true           # redeploy on every push to the connected branch
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: PORT
+        value: "5000"          # Render injects its own PORT too; server.js honours process.env.PORT
+      # ---- Secrets: set these in the Render dashboard (sync:false = not in git) ----
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: FRONTEND_URL
+        sync: false            # e.g. https://jaywebsiteklm.netlify.app or your final domain
+      - key: ADMIN_EMAIL
+        sync: false

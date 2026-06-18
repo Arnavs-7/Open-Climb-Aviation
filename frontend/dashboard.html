@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Dashboard — Open Climb Aviation Academy</title>
+  <link rel="icon" href="assets/logo.jpeg" type="image/jpeg"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+
+  <style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --white:    #FFFFFF;
+    --cream:    #FAFAF6;
+    --light:    #F6F2EA;
+    --warm:     #F5EDD8;
+    --deep:     #FDF9F0;
+
+    --ink:      #1A1610;
+    --ink-mid:  #4A3F2F;
+    --muted:    #7A6E5A;
+    --subtle:   #A89880;
+
+    --gold:     #B8892A;
+    --gold-dk:  #9A7220;
+    --gold-lt:  #D4A843;
+    --gold-bg:  rgba(184,137,42,0.08);
+    --gold-bd:  rgba(184,137,42,0.20);
+    --gold-glow: rgba(184,137,42,0.35);
+
+    --line:     rgba(26,22,16,0.08);
+    --line-md:  rgba(26,22,16,0.14);
+
+    --radius:   0.5rem;
+    --radius-lg: 1rem;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  a { text-decoration: none; color: inherit; }
+  img { display: block; max-width: 100%; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+  /* ── Gold dot texture ── */
+  .dot-texture {
+    background-image: radial-gradient(circle, rgba(184,137,42,0.12) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .gold-radial {
+    background: radial-gradient(ellipse at 60% 40%, rgba(184,137,42,0.09) 0%, transparent 65%);
+  }
+
+  /* ── Kicker label ── */
+  .kicker {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--gold);
+  }
+  .kicker::before {
+    content: ''; display: block;
+    width: 28px; height: 1.5px; background: var(--gold); flex-shrink: 0;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500;
+    padding: 12px 28px; border-radius: var(--radius);
+    cursor: pointer; transition: all 0.22s ease; text-decoration: none; border: none;
+  }
+  .btn-gold {
+    background: var(--gold); color: #fff;
+  }
+  .btn-gold:hover {
+    background: var(--gold-dk);
+    box-shadow: 0 6px 24px var(--gold-glow);
+    transform: translateY(-2px);
+  }
+  .btn-outline {
+    background: transparent; color: var(--ink);
+    border: 1.5px solid var(--line-md);
+  }
+  .btn-outline:hover {
+    border-color: var(--gold); color: var(--gold);
+    background: var(--gold-bg);
+  }
+  .btn-ink {
+    background: var(--ink); color: #fff;
+  }
+  .btn-ink:hover {
+    background: var(--ink-mid);
+    transform: translateY(-2px);
+  }
+
+  /* ══════════════════════════════════════════
+     NAVBAR — glassmorphism, gold border
+  ══════════════════════════════════════════ */
+  .navbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    backdrop-filter: blur(14px);
+    background: rgba(253,249,240,0.88);
+    border-bottom: 1px solid var(--gold-bd);
+    height: 72px;
+    display: flex; align-items: center;
+    padding: 0 max(24px, 4%);
+    gap: 16px;
+  }
+  .nav-brand {
+    display: flex; align-items: center; gap: 12px; flex-shrink: 0; margin-right: auto;
+  }
+  .nav-logo {
+    width: 42px; height: 42px; border-radius: 50%; object-fit: cover; object-position: center;
+    border: 2px solid var(--gold-lt);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    flex-shrink: 0;
+  }
+  .nav-wm-main {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem; letter-spacing: 3px; color: var(--ink); line-height: 1;
+  }
+  .nav-wm-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.5rem; letter-spacing: 2px; color: var(--gold); margin-top: 3px; line-height: 1;
+  }
+
+  .nav-tabs {
+    display: flex; gap: 4px; align-items: center;
+  }
+  .nav-tab {
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500;
+    padding: 7px 16px; border-radius: var(--radius);
+    color: var(--muted); transition: all 0.18s; cursor: pointer;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .nav-tab:hover { color: var(--ink); background: var(--light); }
+  .nav-tab.active {
+    background: var(--gold); color: #fff;
+    box-shadow: 0 3px 12px var(--gold-glow);
+  }
+
+  .nav-right {
+    display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  }
+  .nav-greet {
+    font-family: 'DM Sans', sans-serif; font-size: 0.8rem; font-weight: 300; color: var(--muted);
+  }
+  .nav-greet strong {
+    font-weight: 600; color: var(--ink);
+  }
+  .nav-logout {
+    font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 2px; text-transform: uppercase;
+    padding: 7px 14px; border-radius: var(--radius);
+    border: 1px solid var(--line-md); color: var(--muted);
+    background: transparent; cursor: pointer; transition: all 0.18s;
+  }
+  .nav-logout:hover { border-color: var(--ink); color: var(--ink); background: var(--light); }
+
+  /* ══════════════════════════════════════════
+     HERO — two-column, cream + dot texture
+  ══════════════════════════════════════════ */
+  .hero {
+    min-height: 100vh;
+    padding-top: 72px; /* navbar height */
+    background: var(--cream);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-inner {
+    max-width: 1200px; margin: 0 auto;
+    padding: 72px max(24px,4%) 100px;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 48px; align-items: center;
+    position: relative; z-index: 2;
+  }
+  .hero-texture {
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(184,137,42,0.10) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .hero-glow {
+    position: absolute; right: 0; top: 10%;
+    width: 55%; height: 70%;
+    background: radial-gradient(ellipse at center, rgba(184,137,42,0.10) 0%, transparent 65%);
+    pointer-events: none;
+  }
+
+  /* Left — text */
+  .hero-left { display: flex; flex-direction: column; gap: 24px; }
+  .hero-kicker { }
+  .hero-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3rem, 6vw, 5rem);
+    font-weight: 900; line-height: 1.06;
+  }
+  .hl-muted  { display: block; color: var(--muted); font-style: italic; font-weight: 400; }
+  .hl-main   { display: block; color: var(--ink); }
+  .hl-gold   { display: block; color: var(--gold); }
+  .hero-body {
+    font-size: 1rem; font-weight: 300; color: var(--muted);
+    line-height: 1.8; max-width: 420px;
+  }
+  .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  /* Stats row under CTA */
+  .hero-stats {
+    display: flex; gap: 0; margin-top: 8px;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .hstat {
+    flex: 1; padding: 16px 20px; text-align: center;
+    border-right: 1px solid var(--line);
+    background: rgba(255,255,255,0.6);
+  }
+  .hstat:last-child { border-right: none; }
+  .hstat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem; color: var(--gold); line-height: 1; display: block;
+  }
+  .hstat-lbl {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.48rem; letter-spacing: 2px; text-transform: uppercase; color: var(--subtle);
+    display: block; margin-top: 3px;
+  }
+
+  /* Right — instructor card stack */
+  .hero-right {
+    display: flex; flex-direction: column; align-items: flex-end; gap: 20px;
+    position: relative;
+  }
+  .hero-card-main {
+    width: 280px; border-radius: var(--radius-lg);
+    overflow: hidden; border: 1px solid var(--gold-bd);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+    background: var(--white); position: relative;
+  }
+  .hero-card-main img {
+    width: 100%; height: 340px; object-fit: cover; object-position: center 15%;
+    display: block;
+  }
+  .hero-card-badge {
+    position: absolute; top: 14px; left: 14px;
+    font-family: 'Space Mono', monospace; font-size: 0.52rem; letter-spacing: 2px;
+    text-transform: uppercase; color: #fff; background: var(--gold);
+    padding: 6px 12px; border-radius: var(--radius);
+    animation: pulseGold 2.4s ease-in-out infinite;
+  }
+  @keyframes pulseGold {
+    0%,100% { box-shadow: 0 0 0 0 var(--gold-glow); }
+    50%      { box-shadow: 0 0 0 7px transparent; }
+  }
+  .hero-card-foot {
+    padding: 18px 20px;
+  }
+  .hero-card-name {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 2px; color: var(--ink);
+  }
+  .hero-card-role {
+    font-family: 'Space Mono', monospace; font-size: 0.52rem; letter-spacing: 2px; color: var(--gold);
+    margin-top: 3px;
+  }
+
+  /* Mini logo card */
+  .hero-card-logo {
+    position: absolute; bottom: -16px; right: -16px;
+    width: 80px; height: 80px; border-radius: 50%;
+    border: 3px solid var(--white); overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    background: var(--ink);
+  }
+  .hero-card-logo img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+
+  /* Second card — color scheme poster, rotated */
+  .hero-card-secondary {
+    width: 220px; border-radius: var(--radius-lg);
+    overflow: hidden; border: 1px solid var(--gold-bd);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.10);
+    transform: rotate(3deg); align-self: flex-end;
+    margin-right: 48px; margin-top: -60px;
+    background: var(--white);
+  }
+  .hero-card-secondary img {
+    width: 100%; height: 200px; object-fit: cover; object-position: center;
+  }
+
+  /* ══════════════════════════════════════════
+     TICKER
+  ══════════════════════════════════════════ */
+  .ticker-band {
+    background: var(--gold); overflow: hidden; height: 40px;
+    display: flex; align-items: center;
+    border-top: 1px solid var(--gold-dk);
+  }
+  .ticker-track {
+    display: flex; white-space: nowrap;
+    animation: tickerScroll 26s linear infinite;
+  }
+  .ticker-track:hover { animation-play-state: paused; }
+  .ticker-item {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem; letter-spacing: 3px; text-transform: uppercase;
+    color: #fff; padding: 0 28px;
+    display: flex; align-items: center; gap: 14px; flex-shrink: 0;
+  }
+  .ticker-sep { color: rgba(255,255,255,0.5); }
+  @keyframes tickerScroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* ══════════════════════════════════════════
+     POSTER BAND — colourscheme.jpeg split
+  ══════════════════════════════════════════ */
+  .poster-band {
+    display: grid; grid-template-columns: 1fr 1fr;
+    background: var(--light); min-height: 380px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .poster-left {
+    padding: 64px max(32px,5%);
+    display: flex; flex-direction: column; justify-content: center; gap: 20px;
+    border-right: 1px solid var(--line);
+  }
+  .poster-title {
+    font-family: 'Playfair Display', serif; font-weight: 900;
+    font-size: clamp(1.8rem, 3.5vw, 3rem); color: var(--ink); line-height: 1.12;
+  }
+  .poster-title em { color: var(--gold); font-style: italic; }
+  .poster-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .poster-list li {
+    display: flex; align-items: flex-start; gap: 12px;
+    font-size: 0.9rem; font-weight: 400; color: var(--ink-mid);
+  }
+  .poster-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--gold);
+    flex-shrink: 0; margin-top: 6px;
+  }
+  .poster-right { position: relative; overflow: hidden; }
+  .poster-right img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+
+  /* ══════════════════════════════════════════
+     PAGE SECTIONS
+  ══════════════════════════════════════════ */
+  .page-section { display: none; }
+  .page-section.active { display: block; }
+
+  .sec-wrap { max-width: 1200px; margin: 0 auto; padding: 72px max(24px,4%); }
+  .sec-head { margin-bottom: 48px; }
+  .sec-title {
+    font-family: 'Playfair Display', serif; font-weight: 900;
+    font-size: clamp(2rem, 4vw, 3rem); color: var(--ink); line-height: 1.1;
+    margin-top: 12px;
+  }
+  .sec-title em { color: var(--gold); font-style: italic; }
+  .sec-sub {
+    font-size: 1rem; font-weight: 300; color: var(--muted);
+    margin-top: 10px; line-height: 1.7;
+  }
+
+  /* ══════════════════════════════════════════
+     COURSES SECTION
+  ══════════════════════════════════════════ */
+  #sec-courses { background: var(--cream); }
+
+  .courses-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;
+  }
+
+  .course-card {
+    background: var(--white);
+    border: 1px solid var(--line); border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: transform 0.28s ease, box-shadow 0.28s ease;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    position: relative;
+  }
+  .course-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 24px 56px rgba(0,0,0,0.12);
+  }
+  .course-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-lt));
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.35s ease; z-index: 4; border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+  .course-card:hover::before { transform: scaleX(1); }
+
+  .card-photo {
+    position: relative; height: 220px; overflow: hidden; background: var(--warm);
+  }
+  .card-photo img {
+    width: 100%; height: 100%; object-fit: cover; object-position: center 20%;
+    transition: transform 0.55s ease;
+  }
+  .course-card:hover .card-photo img { transform: scale(1.05); }
+  .card-photo-fade {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 90px;
+    background: linear-gradient(to top, rgba(255,255,255,0.95) 0%, transparent 100%);
+  }
+  .card-photo-name {
+    position: absolute; bottom: 14px; left: 20px; right: 80px; z-index: 2;
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 1.5px; color: var(--ink);
+  }
+  .card-badge {
+    position: absolute; top: 14px; right: 14px; z-index: 3;
+    font-family: 'Space Mono', monospace; font-size: 0.5rem; letter-spacing: 2px; text-transform: uppercase;
+    padding: 5px 10px; border-radius: var(--radius);
+  }
+  .badge-active    { background: var(--gold); color: #fff; }
+  .badge-paid      { background: #d4edda; color: #1a6e2e; }
+  .badge-pending   { background: var(--gold-bg); color: var(--gold-dk); border: 1px solid var(--gold-bd); }
+  .badge-completed { background: var(--warm); color: var(--muted); }
+
+  .card-body { padding: 20px 24px 24px; }
+  .card-desc {
+    font-size: 0.88rem; font-weight: 300; color: var(--muted);
+    line-height: 1.75; margin-bottom: 18px;
+  }
+  .card-meta {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius);
+    margin-bottom: 18px; overflow: hidden;
+  }
+  .cmeta { padding: 12px 14px; border-right: 1px solid var(--line); }
+  .cmeta:last-child { border-right: none; }
+  .cmeta-val {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: var(--gold); line-height: 1; margin-bottom: 2px;
+  }
+  .cmeta-val.sm { font-family: 'DM Sans', sans-serif; font-size: 0.75rem; font-weight: 600; color: var(--ink-mid); }
+  .cmeta-key {
+    font-family: 'Space Mono', monospace; font-size: 0.48rem; letter-spacing: 2px; text-transform: uppercase; color: var(--subtle);
+  }
+  .card-actions { display: flex; gap: 10px; }
+  .card-cta {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+    background: var(--ink); color: #fff; border: none; padding: 12px;
+    border-radius: var(--radius);
+    font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 2px; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s; text-decoration: none;
+  }
+  .card-cta:hover { background: var(--gold); }
+  .card-info {
+    width: 44px; height: 44px; flex-shrink: 0;
+    border: 1px solid var(--line-md); border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; cursor: pointer; transition: all 0.2s;
+  }
+  .card-info:hover { border-color: var(--gold); background: var(--gold-bg); }
+  .card-info svg { width: 16px; height: 16px; color: var(--muted); }
+
+  /* Empty state */
+  .empty-box {
+    text-align: center; padding: 80px 40px;
+    border: 1.5px dashed var(--gold-bd); border-radius: var(--radius-lg);
+    background: var(--white);
+  }
+  .empty-photo {
+    width: 110px; height: 110px; border-radius: 50%; object-fit: cover; object-position: center 20%;
+    border: 3px solid var(--gold); margin: 0 auto 24px;
+    box-shadow: 0 0 0 8px var(--gold-bg);
+  }
+  .empty-title {
+    font-family: 'Playfair Display', serif; font-style: italic; font-weight: 700;
+    font-size: 2rem; color: var(--ink); margin-bottom: 12px;
+  }
+  .empty-sub {
+    font-size: 0.95rem; font-weight: 300; color: var(--muted);
+    line-height: 1.8; margin-bottom: 32px;
+  }
+
+  /* ══════════════════════════════════════════
+     INSTRUCTOR SECTION
+  ══════════════════════════════════════════ */
+  #sec-instructor { background: var(--light); }
+
+  .instr-wrap {
+    display: grid; grid-template-columns: 52% 48%;
+    border: 1px solid var(--line); border-radius: var(--radius-lg);
+    overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+  }
+  .instr-photo-col {
+    position: relative; min-height: 560px; overflow: hidden; background: var(--warm);
+  }
+  .instr-photo-col img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: center 10%;
+  }
+  .instr-gold-bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-lt)); z-index: 2;
+  }
+  .instr-feather {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 90px;
+    background: linear-gradient(to top, rgba(246,242,234,0.95) 0%, transparent 100%);
+  }
+  .instr-body {
+    background: var(--white); padding: 52px 44px;
+    border-left: 1px solid var(--line);
+    display: flex; flex-direction: column; justify-content: center; gap: 0;
+  }
+  .instr-name {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 3vw, 3.4rem); line-height: 1.06; margin: 14px 0 8px;
+  }
+  .instr-n1 { display: block; font-weight: 700; color: var(--ink); }
+  .instr-n2 { display: block; font-weight: 700; font-style: italic; color: var(--gold); }
+  .instr-role {
+    font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 3px;
+    text-transform: uppercase; color: var(--subtle); margin-bottom: 24px;
+  }
+  .instr-divider { height: 1px; background: var(--line); margin-bottom: 24px; }
+  .instr-bio {
+    font-size: 0.92rem; font-weight: 300; color: var(--muted);
+    line-height: 1.9; margin-bottom: 28px;
+  }
+  .instr-creds {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 32px;
+  }
+  .cred {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--cream); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 12px 14px;
+  }
+  .cred-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); flex-shrink: 0; }
+  .cred-text { font-size: 0.82rem; font-weight: 500; color: var(--ink); }
+  .instr-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* ══════════════════════════════════════════
+     QUICK ACTIONS
+  ══════════════════════════════════════════ */
+  #sec-actions { background: var(--cream); }
+
+  .actions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .action-tile {
+    display: block; background: var(--white);
+    border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 30px 26px; text-decoration: none; color: var(--ink);
+    cursor: pointer; position: relative; overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+  .action-tile::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+    background: var(--gold); border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease;
+  }
+  .action-tile:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 44px rgba(0,0,0,0.10);
+    border-color: var(--gold-bd);
+  }
+  .action-tile:hover::after { transform: scaleX(1); }
+  .action-icon {
+    width: 50px; height: 50px; border-radius: 50%;
+    background: var(--gold-bg); border: 1.5px solid var(--gold-bd);
+    display: flex; align-items: center; justify-content: center; margin-bottom: 18px;
+  }
+  .action-icon svg { width: 22px; height: 22px; color: var(--gold); }
+  .action-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.25rem;
+    letter-spacing: 1.5px; margin-bottom: 8px; color: var(--ink);
+  }
+  .action-sub {
+    font-size: 0.82rem; font-weight: 300; color: var(--subtle); line-height: 1.6;
+  }
+
+  /* ══════════════════════════════════════════
+     ACCOUNT SECTION
+  ══════════════════════════════════════════ */
+  #sec-account { background: var(--light); }
+
+  .account-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;
+  }
+  .profile-card {
+    background: var(--white); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); overflow: hidden;
+    border-top: 3px solid var(--gold);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  }
+  .profile-top {
+    background: var(--cream); padding: 28px;
+    display: flex; align-items: center; gap: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .profile-av {
+    width: 66px; height: 66px; border-radius: 50%; flex-shrink: 0;
+    background: var(--warm); border: 2px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 6px var(--gold-bg);
+  }
+  .av-letter {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem; font-weight: 700; color: var(--gold);
+  }
+  .profile-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem; font-weight: 700; color: var(--ink); margin-bottom: 3px;
+  }
+  .profile-email {
+    font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--subtle);
+  }
+  .profile-rows { padding: 0 28px; }
+  .profile-row {
+    padding: 16px 0; border-bottom: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .profile-row:last-of-type { border-bottom: none; }
+  .pr-key {
+    font-family: 'Space Mono', monospace; font-size: 0.52rem;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--subtle);
+    margin-bottom: 4px;
+  }
+  .pr-val { font-size: 0.9rem; color: var(--ink); }
+  .pr-val.mono { font-family: 'Space Mono', monospace; font-size: 0.68rem; color: var(--muted); }
+  .pr-chip {
+    font-family: 'Space Mono', monospace; font-size: 0.5rem; letter-spacing: 2px; text-transform: uppercase;
+    background: var(--gold); color: #fff; padding: 5px 10px; border-radius: var(--radius);
+  }
+  .profile-foot {
+    padding: 22px 28px; background: var(--cream); border-top: 1px solid var(--line);
+  }
+  .btn-red {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px; border-radius: var(--radius);
+    border: 1.5px solid rgba(192,57,43,0.5); color: #c0392b;
+    background: transparent; font-family: 'Space Mono', monospace;
+    font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-red:hover { background: #fff0f0; border-color: #c0392b; }
+
+  .promo-panel {
+    background: var(--white); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); overflow: hidden;
+    border-top: 3px solid var(--gold);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  }
+  .promo-img-wrap { position: relative; overflow: hidden; }
+  .promo-img-wrap img { width: 100%; height: auto; display: block; }
+  .promo-foot {
+    padding: 26px 28px; background: var(--cream); border-top: 1px solid var(--line);
+  }
+  .promo-pre { font-size: 0.85rem; font-weight: 300; color: var(--muted); margin-bottom: 4px; }
+  .promo-head {
+    font-family: 'Playfair Display', serif; font-style: italic;
+    font-weight: 700; font-size: 1.85rem; color: var(--gold); line-height: 1.1; margin-bottom: 6px;
+  }
+  .promo-tag {
+    font-family: 'Space Mono', monospace; font-size: 0.5rem;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--subtle); margin-bottom: 20px;
+  }
+
+  /* ══════════════════════════════════════════
+     TOAST
+  ══════════════════════════════════════════ */
+  #toasts {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+  }
+  .toast {
+    padding: 13px 20px; color: #fff; font-size: 0.88rem; font-weight: 500;
+    border-radius: var(--radius); box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    animation: toastUp 0.3s ease; pointer-events: all; max-width: 340px;
+  }
+  .toast-ok  { background: #1e7e34; }
+  .toast-err { background: #c0392b; }
+  @keyframes toastUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ══════════════════════════════════════════
+     REVEAL ANIMATIONS
+  ══════════════════════════════════════════ */
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.55s ease, transform 0.55s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  .d1 { transition-delay: 0.08s; }
+  .d2 { transition-delay: 0.16s; }
+  .d3 { transition-delay: 0.24s; }
+  .d4 { transition-delay: 0.32s; }
+
+  /* ══════════════════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════════════════ */
+  @media (max-width: 1060px) {
+    .hero-inner     { grid-template-columns: 1fr; }
+    .hero-right     { display: none; }
+    .instr-wrap     { grid-template-columns: 1fr; }
+    .instr-photo-col{ min-height: 340px; }
+    .courses-grid   { grid-template-columns: 1fr; }
+    .account-grid   { grid-template-columns: 1fr; }
+    .poster-band    { grid-template-columns: 1fr; }
+    .poster-right   { min-height: 260px; }
+  }
+  @media (max-width: 820px) {
+    .navbar         { padding: 0 16px; gap: 10px; }
+    .nav-tabs       { overflow-x: auto; gap: 2px; }
+    .nav-tab        { font-size: 0.76rem; padding: 6px 12px; white-space: nowrap; }
+    .nav-greet      { display: none; }
+    .actions-grid   { grid-template-columns: repeat(2, 1fr); }
+    .instr-body     { padding: 36px 28px; }
+  }
+  @media (max-width: 540px) {
+    .hero-inner     { padding: 48px 16px 80px; }
+    .hero-headline  { font-size: 2.6rem; }
+    .actions-grid   { grid-template-columns: 1fr; }
+    .instr-creds    { grid-template-columns: 1fr; }
+    .poster-left    { padding: 40px 20px; }
+    .sec-wrap       { padding: 56px 16px; }
+  }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     NAVBAR
+══════════════════════════════════════════ -->
+<nav class="navbar">
+  <div class="nav-brand">
+    <img src="assets/logo.jpeg" class="nav-logo" alt="Open Climb Aviation"/>
+    <div>
+      <div class="nav-wm-main">OPEN CLIMB</div>
+      <div class="nav-wm-sub">Aviation · Pre-TR · A320</div>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('courses')">My Courses</button>
+    <button class="nav-tab"        onclick="showSection('instructor')">Instructor</button>
+    <button class="nav-tab"        onclick="showSection('actions')">Quick Actions</button>
+    <button class="nav-tab"        onclick="showSection('account')">Account</button>
+  </div>
+
+  <div class="nav-right">
+    <div class="nav-greet">Welcome, <strong id="navName">—</strong></div>
+    <button class="nav-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+
+<!-- ══════════════════════════════════════════
+     HERO
+══════════════════════════════════════════ -->
+<section class="hero">
+  <div class="hero-texture"></div>
+  <div class="hero-glow"></div>
+
+  <div class="hero-inner">
+    <!-- Left: text -->
+    <div class="hero-left">
+      <div class="kicker hero-kicker reveal">Student Dashboard</div>
+      <h1 class="hero-headline">
+        <span class="hl-muted reveal d1">Welcome back,</span>
+        <span class="hl-main reveal d2" id="heroName">Pilot</span>
+        <span class="hl-gold reveal d3">You're on track.</span>
+      </h1>
+      <p class="hero-body reveal d3">
+        Your A320 Pre-TR journey is underway. Stay disciplined,
+        stay ahead — the cockpit is closer than you think.
+      </p>
+      <div class="hero-ctas reveal d4">
+        <button class="btn btn-gold" onclick="showSection('courses')">My Courses →</button>
+        <a href="https://wa.me/?text=Hi%20Capt%20Jay%20I%20have%20a%20question%20about%20my%20course"
+           target="_blank" class="btn btn-outline">WhatsApp Jay</a>
+      </div>
+      <div class="hero-stats reveal d4">
+        <div class="hstat">
+          <span class="hstat-num">A320</span>
+          <span class="hstat-lbl">Type Focused</span>
+        </div>
+        <div class="hstat">
+          <span class="hstat-num" id="statPct">0%</span>
+          <span class="hstat-lbl">TR Oriented</span>
+        </div>
+        <div class="hstat">
+          <span class="hstat-num">1:1</span>
+          <span class="hstat-lbl">Mentorship</span>
+        </div>
+        <div class="hstat">
+          <span class="hstat-num">FCOM</span>
+          <span class="hstat-lbl">Deep Dive</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: instructor + poster cards -->
+    <div class="hero-right">
+      <div class="hero-card-main">
+        <img src="assets/jay.jpeg" alt="Capt. Jay Kotecha"
+             onerror="this.parentElement.style.background='var(--warm)'"/>
+        <span class="hero-card-badge">Now Enrolling</span>
+        <div class="hero-card-foot">
+          <div class="hero-card-name">CAPT. JAY KOTECHA</div>
+          <div class="hero-card-role">Founder · A320 Type Rated</div>
+        </div>
+        <div class="hero-card-logo">
+          <img src="assets/logo.jpeg" alt="Open Climb Aviation"
+               onerror="this.style.display='none'"/>
+        </div>
+      </div>
+      <div class="hero-card-secondary">
+        <img src="assets/colourscheme.jpeg" alt="Open Climb Aviation"
+             onerror="this.style.display='none'"/>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     MARQUEE TICKER
+══════════════════════════════════════════ -->
+<div class="ticker-band">
+  <div class="ticker-track">
+    <span class="ticker-item">A320 Systems <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">Flows &amp; Procedures <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">MCDU Setup <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">FCOM Grounded <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">1:1 Mentorship <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">Demo Class Available <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">TR Ready from Day One <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">A320 Systems <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">Flows &amp; Procedures <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">MCDU Setup <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">FCOM Grounded <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">1:1 Mentorship <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">Demo Class Available <span class="ticker-sep">◆</span></span>
+    <span class="ticker-item">TR Ready from Day One <span class="ticker-sep">◆</span></span>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     POSTER BAND
+══════════════════════════════════════════ -->
+<div class="poster-band">
+  <div class="poster-left">
+    <div class="kicker reveal">Open Climb Aviation Academy</div>
+    <h2 class="poster-title reveal d1">Planning for<br/><em>A320 TR?</em><br/>We Got You.</h2>
+    <ul class="poster-list reveal d2">
+      <li><div class="poster-dot"></div>A320 Focused — training that matters</li>
+      <li><div class="poster-dot"></div>Practical, relevant, 100% TR oriented</li>
+      <li><div class="poster-dot"></div>Confidence &amp; competence from day one</li>
+    </ul>
+    <a href="index.html" class="btn btn-gold reveal d3" style="align-self:flex-start;">Browse Courses →</a>
+  </div>
+  <div class="poster-right">
+    <img src="assets/colourscheme.jpeg" alt="Open Climb Aviation — A320 TR Preparation"/>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     TAB SECTIONS
+══════════════════════════════════════════ -->
+
+<!-- MY COURSES -->
+<section id="sec-courses" class="page-section active">
+  <div class="sec-wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Enrolled Programs</div>
+      <h2 class="sec-title">My <em>Courses</em></h2>
+      <p class="sec-sub">Your active A320 training programmes with Capt. Jay Kotecha.</p>
+    </div>
+    <div id="coursesContainer">
+      <p style="font-size:0.9rem;font-weight:300;color:var(--muted);">Loading your courses…</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- INSTRUCTOR -->
+<section id="sec-instructor" class="page-section">
+  <div class="sec-wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Your Instructor</div>
+      <h2 class="sec-title">Capt. Jay <em>Kotecha</em></h2>
+    </div>
+    <div class="instr-wrap reveal d1">
+      <div class="instr-photo-col">
+        <div class="instr-gold-bar"></div>
+        <img src="assets/jay.jpeg" alt="Capt. Jay Kotecha — Open Climb Aviation"/>
+        <div class="instr-feather"></div>
+      </div>
+      <div class="instr-body">
+        <div class="kicker">Founder &amp; Lead Instructor</div>
+        <div class="instr-name">
+          <span class="instr-n1">Capt. Jay</span>
+          <span class="instr-n2">Kotecha</span>
+        </div>
+        <div class="instr-role">Commercial Pilot &nbsp;·&nbsp; A320 Type Rated &nbsp;·&nbsp; Open Climb Aviation Academy</div>
+        <div class="instr-divider"></div>
+        <p class="instr-bio">
+          Commercial pilot trained at one of India's premier aviation institutes, with deep
+          specialisation in A320 systems and procedures. With an exceptional grasp of A320 FCOM
+          concepts and airline-standard workflows, I mentor aspiring pilots through focused,
+          practical Pre-TR training — bridging the gap between flight school and the airline cockpit.
+        </p>
+        <div class="instr-creds">
+          <div class="cred"><div class="cred-dot"></div><span class="cred-text">Commercial Pilot License</span></div>
+          <div class="cred"><div class="cred-dot"></div><span class="cred-text">A320 Type Rated</span></div>
+          <div class="cred"><div class="cred-dot"></div><span class="cred-text">FCOM Specialist</span></div>
+          <div class="cred"><div class="cred-dot"></div><span class="cred-text">1:1 Mentorship Style</span></div>
+        </div>
+        <div class="instr-btns">
+          <a href="https://wa.me/?text=Hi%20Capt%20Jay%20I%20have%20a%20question%20about%20my%20course"
+             target="_blank" class="btn btn-gold">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/>
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.556 4.126 1.523 5.855L0 24l6.313-1.497A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.876 9.876 0 01-5.031-1.375l-.36-.214-3.742.887.903-3.648-.235-.374A9.867 9.867 0 012.118 12C2.118 6.527 6.527 2.118 12 2.118S21.882 6.527 21.882 12 17.473 21.882 12 21.882z"/>
+            </svg>
+            WhatsApp Jay
+          </a>
+          <a href="mailto:jaykotecha2003@gmail.com" class="btn btn-outline">Email</a>
+          <a href="https://instagram.com/jaykotecha_klm" target="_blank" class="btn btn-ink">Instagram</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- QUICK ACTIONS -->
+<section id="sec-actions" class="page-section">
+  <div class="sec-wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Shortcuts</div>
+      <h2 class="sec-title">Quick <em>Actions</em></h2>
+    </div>
+    <div class="actions-grid">
+
+      <a href="index.html" class="action-tile reveal d1">
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>
+          </svg>
+        </div>
+        <div class="action-title">Browse Courses</div>
+        <div class="action-sub">Explore all A320 training programmes</div>
+      </a>
+
+      <a href="https://wa.me/?text=Hi%20Capt%20Jay%20I%20have%20a%20question%20about%20my%20course"
+         target="_blank" class="action-tile reveal d2">
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/>
+            <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.556 4.126 1.523 5.855L0 24l6.313-1.497A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.876 9.876 0 01-5.031-1.375l-.36-.214-3.742.887.903-3.648-.235-.374A9.867 9.867 0 012.118 12C2.118 6.527 6.527 2.118 12 2.118S21.882 6.527 21.882 12 17.473 21.882 12 21.882z"/>
+          </svg>
+        </div>
+        <div class="action-title">WhatsApp Jay</div>
+        <div class="action-sub">Reach Capt. Jay directly for support</div>
+      </a>
+
+      <a href="mailto:jaykotecha2003@gmail.com" class="action-tile reveal d3">
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,12 2,6"/>
+          </svg>
+        </div>
+        <div class="action-title">Send Email</div>
+        <div class="action-sub">jaykotecha2003@gmail.com</div>
+      </a>
+
+      <a href="https://instagram.com/jaykotecha_klm" target="_blank" class="action-tile reveal">
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+            <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/>
+            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+          </svg>
+        </div>
+        <div class="action-title">Instagram</div>
+        <div class="action-sub">Follow @jaykotecha_klm for updates</div>
+      </a>
+
+      <a href="index.html" class="action-tile reveal d1">
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </div>
+        <div class="action-title">Back to Home</div>
+        <div class="action-sub">Return to the main website</div>
+      </a>
+
+      <span class="action-tile reveal d2" onclick="showSection('account')">
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <div class="action-title">My Account</div>
+        <div class="action-sub">View your profile &amp; settings</div>
+      </span>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ACCOUNT -->
+<section id="sec-account" class="page-section">
+  <div class="sec-wrap">
+    <div class="sec-head reveal">
+      <div class="kicker">Your Profile</div>
+      <h2 class="sec-title">My <em>Account</em></h2>
+    </div>
+    <div class="account-grid">
+
+      <div class="profile-card reveal d1">
+        <div class="profile-top">
+          <div class="profile-av"><span class="av-letter" id="avatarLetter">P</span></div>
+          <div>
+            <div class="profile-name" id="accName">—</div>
+            <div class="profile-email" id="accEmail">—</div>
+          </div>
+        </div>
+        <div class="profile-rows">
+          <div class="profile-row">
+            <div><div class="pr-key">WhatsApp</div><div class="pr-val mono" id="accWhatsapp">—</div></div>
+          </div>
+          <div class="profile-row">
+            <div><div class="pr-key">Age</div><div class="pr-val" id="accAge">—</div></div>
+          </div>
+          <div class="profile-row">
+            <div><div class="pr-key">Member Since</div><div class="pr-val" id="accJoined">—</div></div>
+          </div>
+          <div class="profile-row">
+            <div><div class="pr-key">Status</div></div>
+            <span class="pr-chip" id="accRole">STUDENT</span>
+          </div>
+        </div>
+        <div class="profile-foot">
+          <button class="btn-red" onclick="logout()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <div class="promo-panel reveal d2">
+        <div class="promo-img-wrap">
+          <img src="assets/colourscheme.jpeg" alt="Open Climb Aviation — A320 TR Preparation"
+               onerror="this.parentElement.style.background='var(--warm)';this.style.display='none'"/>
+        </div>
+        <div class="promo-foot">
+          <div class="promo-pre">Planning for</div>
+          <div class="promo-head">A320 TR?</div>
+          <div class="promo-tag">Open Climb Aviation Academy — Pre-TR Preparation</div>
+          <a href="index.html" class="btn btn-gold" style="width:100%;justify-content:center;">Browse Courses →</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- Toast stack -->
+<div id="toasts"></div>
+
+
+<script>
+/* ═══════════════════════════════════
+   BACKEND HELPERS — preserved exactly
+═══════════════════════════════════ */
+/* TODO: replace REPLACE_WITH_RENDER_URL with the real Render backend URL. */
+const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'http://localhost:5000/api'
+  : 'https://REPLACE_WITH_RENDER_URL/api';
+function getToken() { return localStorage.getItem('oca_token'); }
+function getUser()  { return JSON.parse(localStorage.getItem('oca_user') || '{}'); }
+function logout()   { localStorage.clear(); window.location.href = 'index.html'; }
+
+async function apiCall(endpoint, method = 'GET', body = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  const token = getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(API_BASE + endpoint, {
+    method, headers, body: body ? JSON.stringify(body) : null
+  });
+  return res.json();
+}
+
+/* ── Auth guard ── */
+if (!getToken()) window.location.href = 'index.html';
+
+/* ── Toast ── */
+function toast(msg, type = 'ok') {
+  const el = document.createElement('div');
+  el.className = 'toast toast-' + type;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 4800);
+}
+
+/* ═══════════════════════════════════
+   SECTION NAVIGATION
+═══════════════════════════════════ */
+const TABS = ['courses', 'instructor', 'actions', 'account'];
+
+function showSection(name) {
+  TABS.forEach(t =>
+    document.getElementById('sec-' + t)?.classList.toggle('active', t === name)
+  );
+  document.querySelectorAll('.nav-tab').forEach((btn, i) =>
+    btn.classList.toggle('active', TABS[i] === name)
+  );
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  requestAnimationFrame(runReveal);
+}
+
+/* ═══════════════════════════════════
+   POPULATE USER
+═══════════════════════════════════ */
+function populateUser() {
+  const u = getUser();
+  const name = u.name || 'Pilot';
+  document.getElementById('navName').textContent      = name;
+  document.getElementById('heroName').textContent     = name.toUpperCase();
+  document.getElementById('avatarLetter').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('accName').textContent      = name;
+  document.getElementById('accEmail').textContent     = u.email    || '—';
+  document.getElementById('accWhatsapp').textContent  = u.whatsapp || 'Not provided';
+  document.getElementById('accAge').textContent       = u.age ? u.age + ' years' : '—';
+  document.getElementById('accJoined').textContent    = u.created_at
+    ? new Date(u.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '—';
+  document.getElementById('accRole').textContent = (u.role || 'student').toUpperCase();
+}
+
+/* ═══════════════════════════════════
+   LOAD COURSES
+═══════════════════════════════════ */
+async function loadMyCourses() {
+  const box = document.getElementById('coursesContainer');
+  try {
+    const json = await apiCall('/enrollment/my-courses');
+    const list = json.data?.enrollments || [];
+
+    if (!list.length) {
+      box.innerHTML = `
+        <div class="empty-box">
+          <img src="assets/jay.jpeg" class="empty-photo" alt="Capt. Jay"
+               onerror="this.style.display='none'"/>
+          <div class="empty-title">No Courses Yet</div>
+          <p class="empty-sub">
+            You haven't enrolled in any courses yet.<br/>
+            Browse our A320 training programmes and take the next step.
+          </p>
+          <a href="index.html" class="btn btn-gold" style="padding:13px 40px;">
+            Browse Courses →
+          </a>
+        </div>`;
+      return;
+    }
+
+    box.innerHTML = `<div class="courses-grid">${list.map(courseCard).join('')}</div>`;
+    runReveal();
+  } catch {
+    box.innerHTML = `<p style="font-size:0.9rem;font-weight:300;color:var(--muted);">Failed to load courses. Please refresh.</p>`;
+  }
+}
+
+function courseCard(e) {
+  const c = e.courses || {};
+  const badgeCls = { active: 'badge-active', paid: 'badge-paid', pending: 'badge-pending', completed: 'badge-completed' }[e.status] || 'badge-pending';
+  const waLink = `https://wa.me/?text=Hi%20Capt.%20Jay%2C%20I%20am%20enrolled%20in%20${encodeURIComponent(c.name || 'your course')}%20and%20have%20a%20question.`;
+  const price  = c.price ? '₹' + (c.price / 100).toLocaleString('en-IN') : '—';
+  const date   = e.enrolled_at
+    ? new Date(e.enrolled_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '—';
+  const dur = c.duration_days || '—';
+
+  return `
+    <div class="course-card reveal">
+      <div class="card-photo">
+        <img src="assets/jay.jpeg" alt="${c.name || 'Course'}"
+             onerror="this.style.display='none'"/>
+        <div class="card-photo-fade"></div>
+        <div class="card-photo-name">${c.name || 'Course'}</div>
+        <span class="card-badge ${badgeCls}">${e.status.toUpperCase()}</span>
+      </div>
+      <div class="card-body">
+        ${c.description ? `<p class="card-desc">${c.description}</p>` : ''}
+        <div class="card-meta">
+          <div class="cmeta">
+            <div class="cmeta-val">${dur}</div><div class="cmeta-key">Days</div>
+          </div>
+          <div class="cmeta">
+            <div class="cmeta-val" style="font-size:1.1rem;">${price}</div><div class="cmeta-key">Paid</div>
+          </div>
+          <div class="cmeta">
+            <div class="cmeta-val sm">${date}</div><div class="cmeta-key">Enrolled</div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <a href="${waLink}" target="_blank" class="card-cta">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/>
+              <path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.556 4.126 1.523 5.855L0 24l6.313-1.497A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.876 9.876 0 01-5.031-1.375l-.36-.214-3.742.887.903-3.648-.235-.374A9.867 9.867 0 012.118 12C2.118 6.527 6.527 2.118 12 2.118S21.882 6.527 21.882 12 17.473 21.882 12 21.882z"/>
+            </svg>
+            Contact Instructor
+          </a>
+          <button class="card-info" onclick="showCourseDetail('${e.id}')" title="View payment details">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function showCourseDetail(id) {
+  try {
+    const json = await apiCall(`/enrollment/${id}`);
+    if (json.success) {
+      const e = json.data.enrollment;
+      toast(`${e.courses?.name || 'Course'} · Payment: ${e.payment_id ? e.payment_id.slice(0, 18) + '…' : 'N/A'}`, 'ok');
+    } else {
+      toast('Could not load course details.', 'err');
+    }
+  } catch { toast('Error loading details.', 'err'); }
+}
+
+/* ═══════════════════════════════════
+   REVEAL ANIMATIONS
+═══════════════════════════════════ */
+function runReveal() {
+  document.querySelectorAll('.reveal:not(.in)').forEach(el => {
+    if (el.getBoundingClientRect().top < window.innerHeight - 40)
+      el.classList.add('in');
+  });
+}
+document.querySelectorAll('.reveal').forEach(el =>
+  new IntersectionObserver(([e]) => { if (e.isIntersecting) el.classList.add('in'); }, { threshold: 0.08 }).observe(el)
+);
+window.addEventListener('scroll', runReveal, { passive: true });
+
+/* ── Count-up animation ── */
+function countUp(el, target, suffix, ms) {
+  let v = 0; const step = target / (ms / 16);
+  const tick = () => {
+    v = Math.min(v + step, target);
+    el.textContent = Math.round(v) + suffix;
+    if (v < target) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+/* ═══════════════════════════════════
+   INIT
+═══════════════════════════════════ */
+populateUser();
+loadMyCourses();
+
+setTimeout(() => {
+  document.querySelectorAll('.hero .reveal, .poster-band .reveal').forEach(el => el.classList.add('in'));
+  runReveal();
+  const el = document.getElementById('statPct');
+  if (el) setTimeout(() => countUp(el, 100, '%', 1200), 500);
+}, 120);
+</script>
+</body>
+</html>
