@@ -22,16 +22,22 @@ const allowedOrigins = [
   'http://localhost:3000',              // local static dev server
   'http://localhost:5500',              // VS Code Live Server default
   'http://127.0.0.1:5500',
-  'https://jaywebsiteklm.netlify.app',  // current live Netlify site
+  'https://jaywebsiteklm.netlify.app',          // previous live Netlify site
+  'https://open-climb-aviation.vercel.app',     // current live Vercel production site
   // TODO: add the final custom domain(s) once purchased, e.g.:
   // 'https://openclimbaviation.com',
   // 'https://www.openclimbaviation.com',
 ].filter(Boolean);
 
+// Allow Vercel preview deployments (e.g. https://open-climb-aviation-<hash>.vercel.app)
+const vercelPreviewPattern = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;
+
 app.use(cors({
   origin(origin, callback) {
     // allow non-browser clients (curl, server-to-server, health pings) with no Origin
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    if (!origin || allowedOrigins.includes(origin) || vercelPreviewPattern.test(origin)) {
+      return callback(null, true);
+    }
     // Disallowed origin: deny CORS quietly (no thrown error / stack trace spam).
     // The browser blocks the response; the request itself still returns normally.
     return callback(null, false);
