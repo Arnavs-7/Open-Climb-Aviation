@@ -82,7 +82,8 @@
   .nav-wm-main { font-family: 'Bebas Neue', sans-serif; font-size: 1.35rem; letter-spacing: 4px; color: #fff; line-height: 1.1; }
   .nav-wm-sub  { font-family: 'Space Mono', monospace; font-size: 0.42rem; letter-spacing: 3px; color: var(--gold); margin-top: 5px; text-transform: uppercase; }
 
-  .nav-links { display: flex; gap: 0; margin-left: auto; }
+  .nav-collapse { display: flex; align-items: center; gap: 20px; margin-left: auto; }
+  .nav-links { display: flex; gap: 0; }
   .nav-links a {
     font-family: 'DM Sans', sans-serif; font-size: 0.72rem; font-weight: 500;
     padding: 8px 14px; color: rgba(255,255,255,0.65);
@@ -93,6 +94,18 @@
 
   .nav-actions { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
   .nav-actions .btn { padding: 8px 18px; font-size: 0.72rem; }
+
+  /* Hamburger — shown on mobile only (see @media max-width:720px) */
+  .nav-toggle {
+    display: none;
+    width: 44px; height: 44px; margin-left: auto;
+    align-items: center; justify-content: center;
+    background: transparent; border: 1px solid rgba(184,137,42,0.35);
+    border-radius: var(--radius); color: var(--gold);
+    font-size: 1.4rem; line-height: 1; cursor: pointer;
+    transition: border-color 0.18s, color 0.18s;
+  }
+  .nav-toggle:hover { border-color: var(--gold); color: var(--gold-lt); }
 
   /* ════════════════════════════════
      HERO — full screen, dramatic
@@ -678,7 +691,27 @@
     .why-features { grid-template-columns: 1fr 1fr; }
   }
   @media (max-width: 720px) {
-    .nav-links { display: none; }
+    .nav-toggle { display: flex; }
+    /* Let the brand text shrink/truncate so the hamburger always fits. */
+    .nav-brand { flex-shrink: 1; min-width: 0; gap: 10px; }
+    .nav-brand-text { min-width: 0; }
+    .nav-wm-main { font-size: 0.95rem; letter-spacing: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nav-collapse {
+      position: fixed; top: 76px; left: 0; right: 0;
+      flex-direction: column; align-items: stretch; gap: 0; margin-left: 0;
+      background: rgba(26,22,16,0.98); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(184,137,42,0.18);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+      padding: 6px 0 18px;
+      max-height: calc(100dvh - 76px); overflow-y: auto;
+      transform: translateY(-14px); opacity: 0; visibility: hidden; pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+    }
+    .navbar.open .nav-collapse { transform: translateY(0); opacity: 1; visibility: visible; pointer-events: auto; }
+    .nav-collapse .nav-links { flex-direction: column; width: 100%; }
+    .nav-collapse .nav-links a { padding: 15px 28px; font-size: 0.82rem; border-top: 1px solid rgba(184,137,42,0.08); }
+    .nav-collapse .nav-actions { flex-direction: column; align-items: stretch; width: 100%; gap: 12px; padding: 16px 28px 0; }
+    .nav-collapse .nav-actions .btn { width: 100%; padding: 13px 18px; font-size: 0.78rem; }
     .footer-top { grid-template-columns: 1fr; }
     .frow2 { grid-template-columns: 1fr; }
     .instr-body { padding: 36px 24px; }
@@ -708,16 +741,19 @@
       <div class="nav-wm-sub">Start Your Climb</div>
     </div>
   </a>
-  <div class="nav-links">
-    <a href="#courses" onclick="event.preventDefault();document.getElementById('courses').scrollIntoView({behavior:'smooth'})">Courses</a>
-    <a href="#instructor" onclick="event.preventDefault();document.getElementById('instructor').scrollIntoView({behavior:'smooth'})">Instructor</a>
-    <a href="#why-us" onclick="event.preventDefault();document.getElementById('why-us').scrollIntoView({behavior:'smooth'})">Why Us</a>
-    <a href="#contact" onclick="event.preventDefault();document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Contact</a>
+  <div class="nav-collapse" id="navCollapse">
+    <div class="nav-links">
+      <a href="#courses" onclick="event.preventDefault();document.getElementById('courses').scrollIntoView({behavior:'smooth'})">Courses</a>
+      <a href="#instructor" onclick="event.preventDefault();document.getElementById('instructor').scrollIntoView({behavior:'smooth'})">Instructor</a>
+      <a href="#why-us" onclick="event.preventDefault();document.getElementById('why-us').scrollIntoView({behavior:'smooth'})">Why Us</a>
+      <a href="#contact" onclick="event.preventDefault();document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Contact</a>
+    </div>
+    <div class="nav-actions" id="navActions">
+      <button class="btn btn-outline-light btn-sm" onclick="openAuthModal('login')">Login</button>
+      <button class="btn btn-gold btn-sm" onclick="document.getElementById('courses').scrollIntoView({behavior:'smooth'})">Enroll Now</button>
+    </div>
   </div>
-  <div class="nav-actions" id="navActions">
-    <button class="btn btn-outline-light btn-sm" onclick="openAuthModal('login')">Login</button>
-    <button class="btn btn-gold btn-sm" onclick="document.getElementById('courses').scrollIntoView({behavior:'smooth'})">Enroll Now</button>
-  </div>
+  <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" onclick="toggleMobileMenu()">☰</button>
 </nav>
 
 
@@ -1303,6 +1339,27 @@ function renderNav() {
     <a href="${user.role === 'admin' ? 'admin.html' : 'dashboard.html'}" class="btn btn-outline-light btn-sm">Dashboard</a>
     <button class="btn btn-gold btn-sm" onclick="logout()">Logout</button>`;
 }
+
+/* ── Mobile menu ── */
+function toggleMobileMenu() {
+  const nav = document.querySelector('.navbar');
+  const open = nav.classList.toggle('open');
+  document.getElementById('navToggle').setAttribute('aria-expanded', open);
+}
+function closeMobileMenu() {
+  document.querySelector('.navbar').classList.remove('open');
+  document.getElementById('navToggle').setAttribute('aria-expanded', 'false');
+}
+// Close the menu when any link/button inside it is tapped (works for Login,
+// Enroll, the nav links, and the logged-in Dashboard/Logout buttons too).
+document.getElementById('navCollapse').addEventListener('click', e => {
+  if (e.target.closest('a, button')) closeMobileMenu();
+});
+// Close when tapping outside the navbar.
+document.addEventListener('click', e => {
+  const nav = document.querySelector('.navbar');
+  if (nav.classList.contains('open') && !nav.contains(e.target)) closeMobileMenu();
+});
 
 /* ── Course features lookup ── */
 function getCourseFeatures(name) {
