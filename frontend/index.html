@@ -1307,6 +1307,22 @@ function renderNav() {
 /* ── Course features lookup ── */
 function getCourseFeatures(name) {
   const n = (name || '').toLowerCase();
+  // Combined package — check before the systems-only branch since its name also contains "system".
+  if (n.includes('system') && (n.includes('flow') || n.includes('procedure'))) return [
+    'Complete A320 Systems Coverage',
+    'All System Limitations',
+    'Full Cockpit Preparation Flows',
+    'MCDU Programming (Complete Flight)',
+    'PF & PM Duties & Task Sharing',
+    'Normal & Non-normal Checklists'
+  ];
+  if (n.includes('counsel') || n.includes('career')) return [
+    'Personalized Career Roadmap',
+    'Flight School & Course Selection Guidance',
+    'DGCA Requirements Walkthrough',
+    'Type Rating & Airline Prep Planning',
+    'Live Q&A With Capt. Jay Kotecha'
+  ];
   if (n.includes('system')) return [
     'A320 Cockpit Layout & Controls',
     'All A320 Systems',
@@ -1329,10 +1345,24 @@ function getCourseFeatures(name) {
 
 /* ── Course icon ── */
 function getCourseIcon(name, index) {
+  const n = (name || '').toLowerCase();
+  // Name-based icons so the combined + career courses keep their icon regardless of order.
+  if (n.includes('system') && (n.includes('flow') || n.includes('procedure'))) return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`;
+  if (n.includes('counsel') || n.includes('career')) return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>`;
   if (index === 0) return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>`;
   if (index === 2) return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>`;
   if (index === 3) return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`;
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>`;
+}
+
+/* ── Course badge ── */
+function getCourseBadge(name, index) {
+  const n = (name || '').toLowerCase();
+  if (n.includes('system') && (n.includes('flow') || n.includes('procedure'))) return 'Best Value';
+  if (n.includes('counsel') || n.includes('career')) return 'NEW';
+  if (n.includes('system')) return 'Popular';
+  if (n.includes('flow') || n.includes('mcdu') || n.includes('procedure')) return 'Recommended';
+  return index === 0 ? 'Popular' : 'Recommended';
 }
 
 const checkSVG = `<svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>`;
@@ -1354,7 +1384,7 @@ async function loadCourses() {
           <div class="course-card-top">
             <div class="course-card-head">
               <div class="course-icon">${getCourseIcon(c.name, i)}</div>
-              <span class="course-badge">${i === 0 ? 'Popular' : 'Recommended'}</span>
+              <span class="course-badge">${getCourseBadge(c.name, i)}</span>
             </div>
             <div class="course-name">${c.name}</div>
             <div class="course-price">₹${(c.price/100).toLocaleString('en-IN')}</div>
