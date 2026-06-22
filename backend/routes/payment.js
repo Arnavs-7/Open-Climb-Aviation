@@ -60,9 +60,13 @@ function resolveCoupon(coupon, price) {
   if (code !== COUPON_CODE) {
     return { amount: price, applied: false, valid: false, code: null };
   }
-  const discounted = COUPON_DISCOUNTS[price];
+  // Look up the discount by the course's ORIGINAL price (the value from the DB),
+  // normalized to an integer number of paise. Keying on price — not slug or
+  // order/index — means it matches regardless of how courses are ordered.
+  const key = Number(price);
+  const discounted = Number.isFinite(key) ? COUPON_DISCOUNTS[key] : undefined;
   if (discounted == null) {
-    // Valid code, but this course isn't part of the promotion.
+    // Valid code, but this course's price isn't part of the promotion.
     return { amount: price, applied: false, valid: true, code: COUPON_CODE };
   }
   return { amount: discounted, applied: true, valid: true, code: COUPON_CODE };
