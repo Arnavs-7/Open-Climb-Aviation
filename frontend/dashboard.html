@@ -299,31 +299,6 @@
   }
 
   /* ══════════════════════════════════════════
-     TICKER
-  ══════════════════════════════════════════ */
-  .ticker-band {
-    background: var(--gold); overflow: hidden; height: 40px;
-    display: flex; align-items: center;
-    border-top: 1px solid var(--gold-dk);
-  }
-  .ticker-track {
-    display: flex; white-space: nowrap;
-    animation: tickerScroll 26s linear infinite;
-  }
-  .ticker-track:hover { animation-play-state: paused; }
-  .ticker-item {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.58rem; letter-spacing: 3px; text-transform: uppercase;
-    color: #fff; padding: 0 28px;
-    display: flex; align-items: center; gap: 14px; flex-shrink: 0;
-  }
-  .ticker-sep { color: rgba(255,255,255,0.5); }
-  @keyframes tickerScroll {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
-  }
-
-  /* ══════════════════════════════════════════
      POSTER BAND — colourscheme.jpeg split
   ══════════════════════════════════════════ */
   .poster-band {
@@ -814,35 +789,12 @@
         </div>
       </div>
       <div class="hero-card-secondary">
-        <img src="assets/colourscheme.jpeg" alt="Open Climb Aviation"
+        <img src="assets/logo.jpeg" alt="Open Climb Aviation"
              onerror="this.style.display='none'"/>
       </div>
     </div>
   </div>
 </section>
-
-
-<!-- ══════════════════════════════════════════
-     MARQUEE TICKER
-══════════════════════════════════════════ -->
-<div class="ticker-band">
-  <div class="ticker-track">
-    <span class="ticker-item">A320 Systems <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">Flows &amp; Procedures <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">MCDU Setup <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">FCOM Grounded <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">1:1 Mentorship <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">Demo Class Available <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">TR Ready from Day One <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">A320 Systems <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">Flows &amp; Procedures <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">MCDU Setup <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">FCOM Grounded <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">1:1 Mentorship <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">Demo Class Available <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">TR Ready from Day One <span class="ticker-sep">◆</span></span>
-  </div>
-</div>
 
 
 <!-- ══════════════════════════════════════════
@@ -860,7 +812,7 @@
     <a href="index.html" class="btn btn-gold reveal d3" style="align-self:flex-start;">Browse Courses →</a>
   </div>
   <div class="poster-right">
-    <img src="assets/colourscheme.jpeg" alt="Open Climb Aviation — A320 TR Preparation"/>
+    <img src="assets/logo.jpeg" alt="Open Climb Aviation — A320 TR Preparation"/>
   </div>
 </div>
 
@@ -894,7 +846,7 @@
     <div class="instr-wrap reveal d1">
       <div class="instr-photo-col">
         <div class="instr-gold-bar"></div>
-        <img src="assets/jay.jpeg" alt="Capt. Jay Kotecha — Open Climb Aviation"/>
+        <img src="assets/logo.jpeg" alt="Open Climb Aviation"/>
         <div class="instr-feather"></div>
       </div>
       <div class="instr-body">
@@ -1062,7 +1014,7 @@
 
       <div class="promo-panel reveal d2">
         <div class="promo-img-wrap">
-          <img src="assets/colourscheme.jpeg" alt="Open Climb Aviation — A320 TR Preparation"
+          <img src="assets/logo.jpeg" alt="Open Climb Aviation — A320 TR Preparation"
                onerror="this.parentElement.style.background='var(--warm)';this.style.display='none'"/>
         </div>
         <div class="promo-foot">
@@ -1160,7 +1112,7 @@ async function loadMyCourses() {
     if (!list.length) {
       box.innerHTML = `
         <div class="empty-box">
-          <img src="assets/jay.jpeg" class="empty-photo" alt="Capt. Jay"
+          <img src="assets/logo.jpeg" class="empty-photo" alt="Open Climb Aviation"
                onerror="this.style.display='none'"/>
           <div class="empty-title">No Courses Yet</div>
           <p class="empty-sub">
@@ -1194,7 +1146,7 @@ function courseCard(e) {
   return `
     <div class="course-card reveal">
       <div class="card-photo">
-        <img src="assets/jay.jpeg" alt="${c.name || 'Course'}"
+        <img src="assets/logo.jpeg" alt="${c.name || 'Course'}"
              onerror="this.style.display='none'"/>
         <div class="card-photo-fade"></div>
         <div class="card-photo-name">${c.name || 'Course'}</div>
