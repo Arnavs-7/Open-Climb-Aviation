@@ -12,7 +12,7 @@ deployment. Anything that needs **your** logins or payment is called out clearly
   [ Custom domain ]  ──root──►  Netlify   (static frontend: index/dashboard/admin.html)
                      ──api.──►  Render    (Express API)  ──►  Supabase (Postgres)
                                                           ──►  Razorpay (payments)
-                                                          ──►  Gmail SMTP (email)
+                                                          ──►  Resend (email API)
 ```
 
 | Piece     | Host               | Cost            |
@@ -21,7 +21,7 @@ deployment. Anything that needs **your** logins or payment is called out clearly
 | Backend   | Render web service | Free            |
 | Database  | Supabase           | Free            |
 | Payments  | Razorpay           | Per-transaction |
-| Email     | Gmail SMTP         | Free            |
+| Email     | Resend (HTTP API)  | Free tier       |
 | Domain    | Cloudflare Registrar | ~₹900/yr      |
 | Keep-alive| cron-job.org       | Free            |
 
@@ -119,8 +119,7 @@ fixes that with a keep-alive ping.
    | `JWT_SECRET`           | run `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` and paste the output |
    | `RAZORPAY_KEY_ID`      | start with your **test** key `rzp_test_...` (swap to live in step f) |
    | `RAZORPAY_KEY_SECRET`  | matching test secret |
-   | `EMAIL_USER`           | the sending Gmail address |
-   | `EMAIL_PASS`           | Gmail **App Password** (see step g / `.env.example`) |
+   | `RESEND_API_KEY`       | Resend API key `re_...` (see step g). Replaces Gmail SMTP — `EMAIL_USER`/`EMAIL_PASS` are no longer used |
    | `FRONTEND_URL`         | `https://jaywebsiteklm.netlify.app` for now (update to your domain in step e) |
    | `ADMIN_EMAIL`          | inbox for enquiry/enrollment notifications |
 
@@ -221,16 +220,21 @@ fixes that with a keep-alive ping.
 
 ---
 
-## g) Email — Gmail App Password & FormSubmit
+## g) Email — Resend API key & FormSubmit
 
-**Gmail App Password** (for the nodemailer transactional emails):
+**Resend** (for the backend transactional emails). We use Resend's HTTP API
+instead of Gmail SMTP because **Render blocks outbound SMTP**, so nodemailer +
+Gmail fails with "Connection timeout". `EMAIL_USER`/`EMAIL_PASS` are **no longer
+used** — you can delete them from Render.
 
-1. The sending Gmail account must have **2-Step Verification ON**
-   (Google Account → Security).
-2. Visit <https://myaccount.google.com/apppasswords> → app name
-   "Open Climb Aviation" → **Create**.
-3. Copy the 16-char code, remove spaces, set it as `EMAIL_PASS` in Render.
-   Full walkthrough is also in `backend/.env.example`.
+1. Create an account at <https://resend.com> and verify your login email.
+2. **API Keys → Create API Key** → copy the value (starts with `re_`).
+3. Set it as `RESEND_API_KEY` in Render, then redeploy.
+4. Sender: until you verify a custom domain in Resend, mail goes from the default
+   `Open Climb Aviation <onboarding@resend.dev>` (hard-coded in the routes), with
+   replies routed to `ADMIN_EMAIL`. To send from your own domain later, verify it
+   under Resend → **Domains** and update `MAIL_FROM` in `routes/auth.js` and
+   `routes/payment.js`.
 
 **FormSubmit activation** (only if any static form posts to FormSubmit for
 `training.ocaa@gmail.com`):
@@ -241,9 +245,9 @@ fixes that with a keep-alive ping.
    deliver without the prompt.
 
 > Note: the main enquiry/enrollment emails in this app are sent by the **backend
-> via nodemailer/Gmail**, not FormSubmit — so the App Password above is the
-> important one. Only do the FormSubmit step if a form in the HTML actually
-> targets formsubmit.co.
+> via Resend**, not FormSubmit — so the `RESEND_API_KEY` above is the important
+> one. Only do the FormSubmit step if a form in the HTML actually targets
+> formsubmit.co.
 
 ---
 
@@ -307,5 +311,8 @@ All set in **Render → Environment** (never committed). Template + descriptions
 live in `backend/.env.example`.
 
 `PORT` · `SUPABASE_URL` · `SUPABASE_SERVICE_KEY` · `JWT_SECRET` ·
-`RAZORPAY_KEY_ID` · `RAZORPAY_KEY_SECRET` · `EMAIL_USER` · `EMAIL_PASS` ·
+`RAZORPAY_KEY_ID` · `RAZORPAY_KEY_SECRET` · `RESEND_API_KEY` ·
 `FRONTEND_URL` · `ADMIN_EMAIL` · `NODE_VERSION`
+
+> `EMAIL_USER` / `EMAIL_PASS` (old Gmail SMTP) are no longer used — Render blocks
+> outbound SMTP, so email now goes through Resend (`RESEND_API_KEY`).

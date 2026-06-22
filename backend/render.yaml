@@ -35,10 +35,8 @@ services:
         sync: false
       - key: RAZORPAY_KEY_SECRET
         sync: false
-      - key: EMAIL_USER
-        sync: false
-      - key: EMAIL_PASS
-        sync: false
+      - key: RESEND_API_KEY
+        sync: false            # Resend HTTP API key (re_...). Replaces Gmail SMTP — EMAIL_USER/EMAIL_PASS no longer used.
       - key: FRONTEND_URL
         sync: false            # e.g. https://jaywebsiteklm.netlify.app or your final domain
       - key: ADMIN_EMAIL

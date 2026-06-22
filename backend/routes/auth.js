@@ -2,7 +2,7 @@ const express    = require('express');
 const router     = express.Router();
 const bcrypt     = require('bcryptjs');
 const jwt        = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
+const { Resend }  = require('resend');
 const { body, validationResult } = require('express-validator');
 const { createClient } = require('@supabase/supabase-js');
 const { verifyToken } = require('../middleware/auth');
@@ -13,13 +13,27 @@ const supabase = createClient(
 );
 
 // ── Mailer ────────────────────────────────────────────────────────────────────
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+// Resend (HTTP API) instead of SMTP — Render blocks outbound SMTP so nodemailer
+// + Gmail times out. Until a custom domain is verified in Resend, send from the
+// default onboarding sender; replies route to ADMIN_EMAIL.
+// Only construct the client if the key is present so the server still boots
+// without it (the Resend constructor throws on a missing key).
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const MAIL_FROM     = 'Open Climb Aviation <onboarding@resend.dev>';
+const MAIL_REPLY_TO = process.env.ADMIN_EMAIL || 'training.ocaa@gmail.com';
+
+// Fire-and-forget sender with error logging. Mirrors the old transporter.sendMail
+// call shape (to / subject / html) so the call sites barely change.
+function sendEmail({ to, subject, html }, label = 'Email') {
+  if (!resend) {
+    console.warn(`${label} skipped — RESEND_API_KEY not set`);
+    return Promise.resolve();
   }
-});
+  return resend.emails
+    .send({ from: MAIL_FROM, replyTo: MAIL_REPLY_TO, to, subject, html })
+    .then(({ error }) => { if (error) console.error(`${label} failed:`, error.message || error); })
+    .catch(err => console.error(`${label} failed:`, err.message));
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function ok(res, data, message = 'Success', status = 200) {
@@ -282,12 +296,11 @@ router.post('/register', [
     const token = signToken(user);
 
     // Welcome email — fire-and-forget, don't block response
-    transporter.sendMail({
-      from:    `"Open Climb Aviation" <${process.env.EMAIL_USER}>`,
+    sendEmail({
       to:      user.email,
       subject: 'Welcome to Open Climb Aviation ✈️',
       html:    welcomeEmailHtml(user.name)
-    }).catch(err => console.error('Welcome email failed:', err.message));
+    }, 'Welcome email');
 
     return ok(res, { token, user }, 'Account created successfully! Welcome aboard.', 201);
   } catch (err) {
@@ -374,20 +387,18 @@ router.post('/enquiry', [
     const enquiryData = { name, email, whatsapp, age, course_interest, message };
 
     // Notification to admin
-    transporter.sendMail({
-      from:    `"Open Climb Aviation" <${process.env.EMAIL_USER}>`,
+    sendEmail({
       to:      process.env.ADMIN_EMAIL,
       subject: `New Enrollment Enquiry — ${name}`,
       html:    enquiryAdminHtml(enquiryData)
-    }).catch(err => console.error('Admin enquiry email failed:', err.message));
+    }, 'Admin enquiry email');
 
     // Confirmation to student
-    transporter.sendMail({
-      from:    `"Open Climb Aviation" <${process.env.EMAIL_USER}>`,
+    sendEmail({
       to:      email,
       subject: 'We received your enquiry — Open Climb Aviation',
       html:    enquiryStudentHtml(name, course_interest)
-    }).catch(err => console.error('Student enquiry email failed:', err.message));
+    }, 'Student enquiry email');
 
     return ok(res, {}, 'Enquiry submitted! We\'ll get back to you within 24 hours.', 201);
   } catch (err) {

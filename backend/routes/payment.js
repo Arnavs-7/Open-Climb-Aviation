@@ -2,7 +2,7 @@ const express    = require('express');
 const router     = express.Router();
 const Razorpay   = require('razorpay');
 const crypto     = require('crypto');
-const nodemailer = require('nodemailer');
+const { Resend }  = require('resend');
 const { createClient } = require('@supabase/supabase-js');
 const { verifyToken } = require('../middleware/auth');
 
@@ -72,13 +72,26 @@ function resolveCoupon(coupon, price) {
   return { amount: discounted, applied: true, valid: true, code: COUPON_CODE };
 }
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+// Email via Resend (HTTP API) — Render blocks outbound SMTP, so nodemailer + Gmail
+// can't connect. Send from the default onboarding sender until a domain is verified
+// in Resend; replies route to ADMIN_EMAIL.
+// Only construct the client if the key is present so the server still boots
+// without it (the Resend constructor throws on a missing key).
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const MAIL_FROM     = 'Open Climb Aviation <onboarding@resend.dev>';
+const MAIL_REPLY_TO = process.env.ADMIN_EMAIL || 'training.ocaa@gmail.com';
+
+// Fire-and-forget sender with error logging (mirrors the old transporter.sendMail).
+function sendEmail({ to, subject, html }, label = 'Email') {
+  if (!resend) {
+    console.warn(`${label} skipped — RESEND_API_KEY not set`);
+    return Promise.resolve();
   }
-});
+  return resend.emails
+    .send({ from: MAIL_FROM, replyTo: MAIL_REPLY_TO, to, subject, html })
+    .then(({ error }) => { if (error) console.error(`${label} failed:`, error.message || error); })
+    .catch(err => console.error(`${label} failed:`, err.message));
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function ok(res, data, message = 'Success', status = 200) {
@@ -465,15 +478,13 @@ router.post('/verify', verifyToken, async (req, res) => {
     whatsapp:        req.user.whatsapp
   };
 
-  transporter.sendMail({
-    from:    `"Open Climb Aviation" <${process.env.EMAIL_USER}>`,
+  sendEmail({
     to:      req.user.email,
     subject: 'Payment Confirmed — Open Climb Aviation ✈️',
     html:    studentConfirmationHtml(studentEmailData)
-  }).catch(err => console.error('Student confirmation email failed:', err.message));
+  }, 'Student confirmation email');
 
-  transporter.sendMail({
-    from:    `"Open Climb Aviation" <${process.env.EMAIL_USER}>`,
+  sendEmail({
     to:      process.env.ADMIN_EMAIL,
     subject: `New Student Enrolled — ${req.user.name}`,
     html:    adminEnrollmentHtml({
@@ -484,7 +495,7 @@ router.post('/verify', verifyToken, async (req, res) => {
       amount:          coursePrice,
       paymentId:       razorpay_payment_id
     })
-  }).catch(err => console.error('Admin enrollment email failed:', err.message));
+  }, 'Admin enrollment email');
 
   return ok(res, { enrollment_id }, 'Payment verified. Enrollment is now active!');
 });
@@ -647,8 +658,7 @@ router.post('/upi-claim', verifyToken, async (req, res) => {
   const courseName = enrollment?.courses?.name || 'your course';
 
   // 4. Email the admin to verify the UTR — non-blocking
-  transporter.sendMail({
-    from:    `"Open Climb Aviation" <${process.env.EMAIL_USER}>`,
+  sendEmail({
     to:      process.env.ADMIN_EMAIL,
     subject: `UPI Payment Claimed — ${req.user.name} (₹${(paidAmount / 100).toLocaleString('en-IN')})`,
     html:    adminUpiClaimHtml({
@@ -660,7 +670,7 @@ router.post('/upi-claim', verifyToken, async (req, res) => {
       utr,
       coupon:          couponResult.code
     })
-  }).catch(err => console.error('Admin UPI-claim email failed:', err.message));
+  }, 'Admin UPI-claim email');
 
   return ok(res, { enrollment_id, status: 'payment_claimed' },
     'Thanks! We\'ve recorded your payment. Capt. Jay will verify and confirm your enrollment shortly.');
