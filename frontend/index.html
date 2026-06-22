@@ -1246,7 +1246,12 @@
 <!-- UPI PAYMENT MODAL (primary) -->
 <style>
   .upi-amount { text-align:center; font-size:0.92rem; color:var(--muted); margin-bottom:14px; }
-  .upi-amount strong { color:var(--ink); font-size:1.18rem; }
+  .upi-amount strong { color:var(--ink); font-size:1.18rem; display:inline-block; }
+  /* Struck-through original price shown when a coupon is applied. */
+  .upi-amount-old { text-decoration:line-through; color:var(--muted); opacity:0.65; font-weight:500; font-size:1rem; margin-right:9px; }
+  .upi-amount.applied strong { color:#1E8E4E; }
+  @keyframes amountPop { 0%{transform:scale(1);} 35%{transform:scale(1.22);} 70%{transform:scale(0.97);} 100%{transform:scale(1);} }
+  .upi-amount strong.pop { animation:amountPop 0.55s cubic-bezier(.2,.9,.3,1.3); }
   .upi-qr { display:flex; align-items:center; justify-content:center; width:fit-content; min-height:170px; margin:0 auto 16px; padding:14px; background:#fff; border:1px solid #e8edf5; border-radius:12px; }
   .upi-qr img, .upi-qr canvas { display:block; }
   .upi-idbox { display:flex; align-items:center; justify-content:space-between; gap:12px; background:#f4f7fb; border:1px solid #e8edf5; border-radius:10px; padding:11px 14px; margin-bottom:12px; }
@@ -1254,17 +1259,29 @@
   .upi-idbox-val { font-family:monospace; font-size:0.95rem; color:var(--ink); font-weight:600; word-break:break-all; }
   .upi-hint { font-size:0.77rem; color:var(--muted); line-height:1.6; margin:0 0 14px; }
   .upi-coupon { display:flex; gap:8px; margin-bottom:6px; }
+  .upi-coupon-field { position:relative; flex:1; display:flex; }
   .upi-coupon input {
-    flex:1; padding:11px 14px; background:var(--cream); border:1px solid var(--line-md);
+    width:100%; padding:11px 14px; background:var(--cream); border:1px solid var(--line-md);
     border-radius:var(--radius); font-family:'DM Sans',sans-serif; font-size:0.9rem; color:var(--ink);
-    outline:none; transition:border-color 0.2s; text-transform:uppercase;
+    outline:none; transition:border-color 0.2s, background 0.2s; text-transform:uppercase;
   }
   .upi-coupon input::placeholder { color:var(--subtle); text-transform:none; }
   .upi-coupon input:focus { border-color:var(--gold); background:#fff; }
+  .upi-coupon input.applied { border-color:#27AE60; background:#f1faf4; color:#1E8E4E; font-weight:600; padding-right:34px; }
+  /* Green ✓ that pops in inside the input when the coupon is accepted. */
+  .upi-coupon-check {
+    position:absolute; right:11px; top:50%; transform:translateY(-50%) scale(0); opacity:0;
+    color:#27AE60; font-weight:800; font-size:1rem; pointer-events:none;
+    transition:transform 0.35s cubic-bezier(.2,.9,.3,1.6), opacity 0.25s ease;
+  }
+  .upi-coupon-check.show { opacity:1; transform:translateY(-50%) scale(1); }
   .upi-coupon button { flex-shrink:0; white-space:nowrap; }
+  .upi-coupon button.applied { background:#27AE60; border-color:#27AE60; color:#fff; }
   .upi-coupon-msg { font-size:0.78rem; min-height:16px; margin-bottom:12px; }
   .upi-coupon-msg.err { color:#C0392B; }
-  .upi-coupon-msg.ok  { color:#27AE60; }
+  .upi-coupon-msg.ok  { color:#1E8E4E; font-weight:600; }
+  /* Confetti canvas overlay (self-contained; created/removed by JS). */
+  .oca-confetti { position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:3000; }
 </style>
 <div class="overlay" id="upiOverlay">
   <div class="modal-box" style="max-width:400px">
@@ -1274,9 +1291,12 @@
       <button class="modal-x" onclick="closeUpiModal()">&#x2715;</button>
     </div>
     <div class="modal-body">
-      <div class="upi-amount">Amount to pay: <strong id="upiAmount">₹0</strong></div>
+      <div class="upi-amount" id="upiAmountWrap">Amount to pay: <span class="upi-amount-old" id="upiOriginalAmount" style="display:none"></span><strong id="upiAmount">₹0</strong></div>
       <div class="upi-coupon">
-        <input id="couponInput" placeholder="Coupon code (optional)" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();applyCoupon();}"/>
+        <div class="upi-coupon-field">
+          <input id="couponInput" placeholder="Coupon code (optional)" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();applyCoupon();}"/>
+          <span class="upi-coupon-check" id="couponCheck" aria-hidden="true">✓</span>
+        </div>
         <button class="btn btn-gold btn-sm" id="couponApplyBtn" onclick="applyCoupon()">Apply</button>
       </div>
       <div class="upi-coupon-msg" id="couponMsg"></div>
@@ -1568,24 +1588,44 @@ function openUpiModal({ enrollment_id, amount, course_name, upi_id, payee_name }
   document.getElementById('upiCopyBtn').textContent    = 'Copy';
   const msg = document.getElementById('upiMsg'); msg.className = 'modal-msg'; msg.textContent = '';
 
-  // Reset the coupon field for each fresh modal open.
+  // Reset the coupon field (and its celebratory state) for each fresh modal open.
   const cInput = document.getElementById('couponInput');
-  cInput.value = ''; cInput.disabled = false;
+  cInput.value = ''; cInput.disabled = false; cInput.classList.remove('applied');
   const cBtn = document.getElementById('couponApplyBtn');
-  cBtn.disabled = false; cBtn.textContent = 'Apply';
+  cBtn.disabled = false; cBtn.textContent = 'Apply'; cBtn.classList.remove('applied');
+  document.getElementById('couponCheck').classList.remove('show');
   const cMsg = document.getElementById('couponMsg'); cMsg.className = 'upi-coupon-msg'; cMsg.textContent = '';
 
-  // Render the amount + QR from the (server-decided) amount.
-  renderUpiAmount(amount);
+  // Render the amount + QR from the (server-decided) amount (full price, no strike).
+  renderUpiAmount(amount, null);
 
   document.getElementById('upiOverlay').classList.add('open');
 }
 
 // Renders the "Amount to pay" text and (re)builds the UPI QR for the given paise
 // amount. Keeping these together guarantees the displayed amount == the QR amount.
-function renderUpiAmount(amount) {
+// When `originalAmount` is a larger value, the original is shown struck-through
+// next to the discounted price, and (if `pop`) the new amount gets a pop animation.
+function renderUpiAmount(amount, originalAmount, pop) {
   const rupees = amount / 100;
-  document.getElementById('upiAmount').textContent = '₹' + rupees.toLocaleString('en-IN');
+  const amtEl  = document.getElementById('upiAmount');
+  const wrap   = document.getElementById('upiAmountWrap');
+  const oldEl  = document.getElementById('upiOriginalAmount');
+  amtEl.textContent = '₹' + rupees.toLocaleString('en-IN');
+
+  if (originalAmount && originalAmount > amount) {
+    oldEl.textContent = '₹' + (originalAmount / 100).toLocaleString('en-IN');
+    oldEl.style.display = '';
+    wrap.classList.add('applied');
+  } else {
+    oldEl.style.display = 'none';
+    wrap.classList.remove('applied');
+  }
+
+  if (pop) {
+    amtEl.classList.remove('pop'); void amtEl.offsetWidth; amtEl.classList.add('pop');
+  }
+
   const link = `upi://pay?pa=${encodeURIComponent(currentUpi.upi_id)}&pn=${encodeURIComponent(currentUpi.payee_name || 'Open Climb Aviation')}&am=${rupees.toFixed(2)}&cu=INR`;
   const qrBox = document.getElementById('upiQr');
   qrBox.innerHTML = '';
@@ -1594,6 +1634,61 @@ function renderUpiAmount(amount) {
   } else {
     qrBox.innerHTML = `<a href="${link}" style="color:var(--gold);font-weight:600">Tap to pay via your UPI app →</a>`;
   }
+}
+
+// Tiny self-contained confetti burst — no external library. Spawns a canvas,
+// fires a gold/green burst from the "amount" area, then cleans itself up.
+function ocaConfetti() {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const colors = ['#D4A843', '#27AE60', '#F5C76A', '#1E8E4E', '#ffffff'];
+  const canvas = document.createElement('canvas');
+  canvas.className = 'oca-confetti';
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = innerWidth * dpr; canvas.height = innerHeight * dpr;
+  ctx.scale(dpr, dpr);
+
+  let ox = innerWidth / 2, oy = innerHeight * 0.32;
+  const amtEl = document.getElementById('upiAmount');
+  if (amtEl) { const r = amtEl.getBoundingClientRect(); ox = r.left + r.width / 2; oy = r.top + r.height / 2; }
+
+  const parts = [];
+  for (let i = 0; i < 110; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 3.5 + Math.random() * 7;
+    parts.push({
+      x: ox, y: oy,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - (4 + Math.random() * 3),
+      size: 5 + Math.random() * 6,
+      color: colors[(Math.random() * colors.length) | 0],
+      rot: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.35,
+      life: 0, ttl: 70 + Math.random() * 35,
+      shape: Math.random() < 0.5 ? 'rect' : 'circle'
+    });
+  }
+  let frame = 0;
+  (function tick() {
+    frame++;
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    let alive = false;
+    for (const p of parts) {
+      if (p.life > p.ttl) continue;
+      p.life++; alive = true;
+      p.vy += 0.17; p.vx *= 0.99;
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - p.life / p.ttl);
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      if (p.shape === 'rect') ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+      else { ctx.beginPath(); ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2); ctx.fill(); }
+      ctx.restore();
+    }
+    if (alive && frame < 220) requestAnimationFrame(tick);
+    else canvas.remove();
+  })();
 }
 
 // Validates a coupon on the backend and, on success, updates the displayed
@@ -1614,10 +1709,19 @@ async function applyCoupon() {
       currentUpi.enrollment_id = json.data.enrollment_id;
       currentUpi.amount        = json.data.amount;
       currentUpi.coupon        = json.data.coupon_code;
-      renderUpiAmount(json.data.amount);
+      const original = json.data.original_amount || currentUpi.amount;
+      const savings  = Math.max(0, original - json.data.amount);
+      // Update amount + QR, showing the struck-through original and a pop.
+      renderUpiAmount(json.data.amount, original, true);
+      // Green success state + savings message.
       msg.className = 'upi-coupon-msg ok';
-      msg.textContent = `Coupon applied! New amount: ₹${(json.data.amount / 100).toLocaleString('en-IN')}.`;
-      input.disabled = true; btn.textContent = 'Applied'; // keep disabled
+      msg.textContent = `🎉 Coupon applied! You saved ₹${(savings / 100).toLocaleString('en-IN')}`;
+      // Lock the field into a happy "applied" state.
+      input.disabled = true; input.classList.add('applied');
+      btn.textContent = '✓ Applied'; btn.classList.add('applied');
+      document.getElementById('couponCheck').classList.add('show');
+      // Confetti! (skips automatically under prefers-reduced-motion)
+      ocaConfetti();
     } else if (json.success) {
       btn.disabled = false; btn.textContent = orig;
       msg.className = 'upi-coupon-msg err'; msg.textContent = 'This coupon isn’t valid for this course.';
