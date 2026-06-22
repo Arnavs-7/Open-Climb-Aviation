@@ -64,6 +64,8 @@ CREATE TABLE IF NOT EXISTS enrollments (
                           CHECK (status IN ('pending', 'payment_claimed', 'paid', 'active', 'completed')),
   payment_id  TEXT,                                       -- Razorpay payment id (set on verify)
   upi_utr     TEXT,                                       -- UPI reference (UTR) student submits when paying via UPI
+  paid_amount INTEGER,                                     -- amount the student was charged, in PAISE (post-coupon)
+  coupon_code TEXT,                                        -- promo code applied to this enrollment, if any
   enrolled_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   -- create-order / upi-init reuse a single pending enrollment per (user, course)
   UNIQUE (user_id, course_id)
@@ -76,6 +78,9 @@ CREATE INDEX IF NOT EXISTS idx_enrollments_status    ON enrollments (status);
 -- Migration for databases created before UPI support was added. Idempotent:
 -- adds the upi_utr column and widens the status CHECK to allow 'payment_claimed'.
 ALTER TABLE enrollments ADD COLUMN IF NOT EXISTS upi_utr TEXT;
+-- Coupon support: record the amount actually charged (post-discount) + the code.
+ALTER TABLE enrollments ADD COLUMN IF NOT EXISTS paid_amount INTEGER;
+ALTER TABLE enrollments ADD COLUMN IF NOT EXISTS coupon_code TEXT;
 DO $$
 BEGIN
   ALTER TABLE enrollments DROP CONSTRAINT IF EXISTS enrollments_status_check;

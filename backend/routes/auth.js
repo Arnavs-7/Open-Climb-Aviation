@@ -229,16 +229,19 @@ function enquiryStudentHtml(name, courseInterest) {
 router.post('/register', [
   body('name')
     .trim()
-    .notEmpty().withMessage('Name is required'),
+    .notEmpty().withMessage('Full name is required')
+    .isLength({ min: 2 }).withMessage('Full name must be at least 2 characters')
+    .matches(/[A-Za-z]/).withMessage('Full name must contain letters, not just numbers'),
   body('email')
     .isEmail().withMessage('A valid email address is required')
     .normalizeEmail(),
   body('password')
-    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+    .custom(v => (v || '').trim().length > 0).withMessage('Password cannot be only spaces'),
   body('whatsapp')
     .optional({ checkFalsy: true })
     .trim()
-    .matches(/^[+\d\s\-()]{7,20}$/).withMessage('Enter a valid WhatsApp number'),
+    .matches(/^\d{10}$/).withMessage('WhatsApp number must be exactly 10 digits'),
   body('age')
     .optional({ checkFalsy: true })
     .isInt({ min: 16, max: 100 }).withMessage('Age must be between 16 and 100')
@@ -341,8 +344,8 @@ router.post('/enquiry', [
     .isEmail().withMessage('A valid email address is required')
     .normalizeEmail(),
   body('whatsapp')
-    .optional({ checkFalsy: true })
-    .trim(),
+    .trim()
+    .matches(/^\d{10}$/).withMessage('WhatsApp number must be exactly 10 digits'),
   body('age')
     .optional({ checkFalsy: true })
     .isInt({ min: 16, max: 100 }).withMessage('Age must be between 16 and 100'),

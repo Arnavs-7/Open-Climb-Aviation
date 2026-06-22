@@ -38,6 +38,36 @@ function razorpayDisabled(res) {
 const UPI_ID    = process.env.UPI_ID    || '9479959933@hdfc';
 const UPI_PAYEE = process.env.UPI_PAYEE || 'Open Climb Aviation';
 
+// ── Coupon config ──────────────────────────────────────────────────────────────
+// Single promotional code. Maps the course's original price (paise) to its
+// discounted price (paise). Validated server-side only — the client never
+// decides the amount. Any course price not listed here gets no discount.
+const COUPON_CODE = 'CAPTDEEKSHA';
+const COUPON_DISCOUNTS = {
+  2500000: 2400000, // ₹25,000 -> ₹24,000
+  1000000: 950000,  // ₹10,000 -> ₹9,500
+  3300000: 3250000, // ₹33,000 -> ₹32,500
+  500000:  450000   // ₹5,000  -> ₹4,500
+};
+
+// Resolve the amount to charge given a (possibly empty) coupon and the course
+// price. `valid` is false only when a non-empty code is supplied that is wrong.
+function resolveCoupon(coupon, price) {
+  const code = (coupon || '').toString().trim().toUpperCase();
+  if (!code) {
+    return { amount: price, applied: false, valid: true, code: null };
+  }
+  if (code !== COUPON_CODE) {
+    return { amount: price, applied: false, valid: false, code: null };
+  }
+  const discounted = COUPON_DISCOUNTS[price];
+  if (discounted == null) {
+    // Valid code, but this course isn't part of the promotion.
+    return { amount: price, applied: false, valid: true, code: COUPON_CODE };
+  }
+  return { amount: discounted, applied: true, valid: true, code: COUPON_CODE };
+}
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -214,13 +244,14 @@ function adminEnrollmentHtml({ studentName, studentEmail, studentWhatsapp, cours
 </html>`;
 }
 
-function adminUpiClaimHtml({ studentName, studentEmail, studentWhatsapp, courseName, amount, utr }) {
+function adminUpiClaimHtml({ studentName, studentEmail, studentWhatsapp, courseName, amount, utr, coupon }) {
   const rows = [
     ['Student Name',  studentName     || '—'],
     ['Email',         studentEmail    || '—'],
     ['WhatsApp',      studentWhatsapp || '—'],
     ['Course',        courseName      || '—'],
     ['Amount',        fmtInr(amount)],
+    ...(coupon ? [['Coupon Applied', coupon]] : []),
     ['UPI Ref (UTR)', utr             || '—'],
     ['Paid To',       `${UPI_PAYEE} (${UPI_ID})`],
     ['Claimed At',    new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })]
@@ -487,7 +518,7 @@ router.get('/my-enrollments', verifyToken, async (req, res) => {
 // Primary payment method. Creates/reuses a pending enrollment and returns the
 // details the browser needs to render the UPI QR code and pay-to box.
 router.post('/upi-init', verifyToken, async (req, res) => {
-  const { course_id } = req.body;
+  const { course_id, coupon } = req.body;
   if (!course_id) return fail(res, 'course_id is required');
 
   // 1. Fetch course
@@ -499,6 +530,13 @@ router.post('/upi-init', verifyToken, async (req, res) => {
     .maybeSingle();
 
   if (courseErr || !course) return fail(res, 'Course not found.', [], 404);
+
+  // 1b. Resolve coupon server-side. Reject an explicitly-wrong code so the
+  //     client can show an error and keep full price.
+  const couponResult = resolveCoupon(coupon, course.price);
+  if (!couponResult.valid) {
+    return fail(res, 'Invalid coupon code.', [], 400);
+  }
 
   // 2. Block if already enrolled (paid/active/completed). Allow pending and
   //    payment_claimed to continue so a student can re-show the QR / re-submit.
@@ -531,27 +569,31 @@ router.post('/upi-init', verifyToken, async (req, res) => {
   }
 
   return ok(res, {
-    enrollment_id: enrollmentId,
-    amount:        course.price,            // paise
-    course_name:   course.name,
-    upi_id:        UPI_ID,
-    payee_name:    UPI_PAYEE,
-    user_name:     req.user.name,
-    user_email:    req.user.email
-  }, 'UPI payment details ready.');
+    enrollment_id:   enrollmentId,
+    amount:          couponResult.amount,     // paise — discounted if coupon applied
+    original_amount: course.price,            // paise — pre-discount
+    coupon_applied:  couponResult.applied,
+    coupon_code:     couponResult.code,       // the canonical code if applied, else null
+    course_name:     course.name,
+    upi_id:          UPI_ID,
+    payee_name:      UPI_PAYEE,
+    user_name:       req.user.name,
+    user_email:      req.user.email
+  }, couponResult.applied ? 'Coupon applied.' : 'UPI payment details ready.');
 });
 
 // ── POST /api/payment/upi-claim ───────────────────────────────────────────────
 // Student confirms they paid and submits their UPI reference (UTR). We mark the
 // enrollment "payment_claimed" and email the admin to verify & activate.
 router.post('/upi-claim', verifyToken, async (req, res) => {
-  const { enrollment_id } = req.body;
+  const { enrollment_id, coupon } = req.body;
   const utr = (req.body.utr || '').toString().trim();
 
   if (!enrollment_id) return fail(res, 'enrollment_id is required.');
   if (!utr)           return fail(res, 'Please enter your UPI reference (UTR) number.');
-  if (!/^[A-Za-z0-9]{6,30}$/.test(utr)) {
-    return fail(res, 'That UTR doesn\'t look right. Enter the reference number from your UPI app (digits/letters only).');
+  // UPI UTR is standardly 12 digits; allow 12–22 to be safe across banks.
+  if (!/^\d{12,22}$/.test(utr)) {
+    return fail(res, 'That UTR doesn\'t look right. Enter the 12-digit reference (UTR) number from your UPI app (numbers only).');
   }
 
   // 1. Load the enrollment (must belong to this user) + course details for email
@@ -568,7 +610,13 @@ router.post('/upi-claim', verifyToken, async (req, res) => {
     return fail(res, `This enrollment is already ${enrollment.status}.`, [], 409);
   }
 
-  // 2. Record the claim
+  // 2. Re-resolve the coupon server-side so the recorded/emailed amount always
+  //    matches what the student was shown and what the QR encoded.
+  const coursePrice  = enrollment?.courses?.price || 0;
+  const couponResult = resolveCoupon(coupon, coursePrice);
+  const paidAmount   = couponResult.amount;
+
+  // 3. Record the claim
   const { error: updErr } = await supabase
     .from('enrollments')
     .update({ status: 'payment_claimed', upi_utr: utr })
@@ -580,21 +628,33 @@ router.post('/upi-claim', verifyToken, async (req, res) => {
     return fail(res, 'Failed to record your payment claim. Please try again.', [], 500);
   }
 
-  const courseName  = enrollment?.courses?.name  || 'your course';
-  const coursePrice = enrollment?.courses?.price || 0;
+  // 3b. Best-effort persistence of the applied amount + coupon. These columns are
+  //     added by the migration in schema.sql; if they don't exist yet the claim
+  //     still succeeds (the amount is always captured in the admin email below).
+  const { error: amtErr } = await supabase
+    .from('enrollments')
+    .update({ paid_amount: paidAmount, coupon_code: couponResult.code })
+    .eq('id', enrollment_id)
+    .eq('user_id', req.user.id);
+  if (amtErr) {
+    console.warn('Could not persist paid_amount/coupon_code (run the migration?):', amtErr.message);
+  }
 
-  // 3. Email the admin to verify the UTR — non-blocking
+  const courseName = enrollment?.courses?.name || 'your course';
+
+  // 4. Email the admin to verify the UTR — non-blocking
   transporter.sendMail({
     from:    `"Open Climb Aviation" <${process.env.EMAIL_USER}>`,
     to:      process.env.ADMIN_EMAIL,
-    subject: `UPI Payment Claimed — ${req.user.name} (₹${(coursePrice / 100).toLocaleString('en-IN')})`,
+    subject: `UPI Payment Claimed — ${req.user.name} (₹${(paidAmount / 100).toLocaleString('en-IN')})`,
     html:    adminUpiClaimHtml({
       studentName:     req.user.name,
       studentEmail:    req.user.email,
       studentWhatsapp: req.user.whatsapp,
       courseName,
-      amount:          coursePrice,
-      utr
+      amount:          paidAmount,
+      utr,
+      coupon:          couponResult.code
     })
   }).catch(err => console.error('Admin UPI-claim email failed:', err.message));
 

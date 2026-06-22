@@ -743,10 +743,7 @@
   </div>
 
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="showSection('courses')">My Courses</button>
-    <button class="nav-tab"        onclick="showSection('instructor')">Instructor</button>
-    <button class="nav-tab"        onclick="showSection('actions')">Quick Actions</button>
-    <button class="nav-tab"        onclick="showSection('account')">Account</button>
+    <a class="nav-tab" href="index.html">Home</a>
   </div>
 
   <div class="nav-right">
@@ -1127,9 +1124,7 @@ function showSection(name) {
   TABS.forEach(t =>
     document.getElementById('sec-' + t)?.classList.toggle('active', t === name)
   );
-  document.querySelectorAll('.nav-tab').forEach((btn, i) =>
-    btn.classList.toggle('active', TABS[i] === name)
-  );
+  // Top navbar is just Home + Logout now — no section tabs to highlight here.
   window.scrollTo({ top: 0, behavior: 'smooth' });
   requestAnimationFrame(runReveal);
 }

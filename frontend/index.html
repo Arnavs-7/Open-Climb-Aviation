@@ -322,23 +322,6 @@
   }
 
   /* ════════════════════════════════
-     TICKER
-  ════════════════════════════════ */
-  .ticker-band {
-    background: var(--gold); overflow: hidden; height: 42px;
-    display: flex; align-items: center;
-    border-top: 1px solid var(--gold-dk);
-  }
-  .ticker-track { display: flex; white-space: nowrap; animation: tickerScroll 26s linear infinite; }
-  .ticker-track:hover { animation-play-state: paused; }
-  .ticker-item {
-    font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 3px; text-transform: uppercase;
-    color: #fff; padding: 0 28px; display: flex; align-items: center; gap: 14px; flex-shrink: 0;
-  }
-  .ticker-sep { color: rgba(255,255,255,0.45); }
-  @keyframes tickerScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-
-  /* ════════════════════════════════
      SECTION SHARED
   ════════════════════════════════ */
   .section-head { text-align: center; margin-bottom: 60px; }
@@ -638,13 +621,21 @@
   ════════════════════════════════ */
   .overlay { display: none; position: fixed; inset: 0; background: rgba(26,22,16,0.70); z-index: 2000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(6px); }
   .overlay.open { display: flex; }
-  .modal-box { background: var(--white); border-radius: var(--radius); width: 100%; max-width: 420px; overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.30); border-top: 3px solid var(--gold); }
-  .modal-head { background: var(--cream); padding: 28px 30px 20px; border-bottom: 1px solid var(--line); position: relative; }
+  .modal-box {
+    background: var(--white); border-radius: var(--radius); width: 100%; max-width: 420px;
+    overflow: hidden; box-shadow: 0 24px 80px rgba(0,0,0,0.30); border-top: 3px solid var(--gold);
+    /* Keep the whole modal within the viewport so tall content (e.g. the UPI
+       modal on short phones) stays fully reachable. Header stays put, body scrolls. */
+    display: flex; flex-direction: column;
+    max-height: calc(100vh - 40px);
+    max-height: calc(100dvh - 40px);
+  }
+  .modal-head { background: var(--cream); padding: 28px 30px 20px; border-bottom: 1px solid var(--line); position: relative; flex-shrink: 0; }
   .modal-head h3 { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.7rem; color: var(--ink); margin-bottom: 4px; }
   .modal-head p { font-size: 0.85rem; color: var(--muted); font-weight: 300; }
   .modal-x { position: absolute; top: 16px; right: 18px; background: none; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; padding: 4px; line-height: 1; }
   .modal-x:hover { color: var(--ink); }
-  .modal-body { padding: 28px 30px; }
+  .modal-body { padding: 28px 30px 30px; overflow-y: auto; -webkit-overflow-scrolling: touch; min-height: 0; flex: 1 1 auto; }
   .modal-tabs { display: flex; border-bottom: 1px solid var(--line); margin-bottom: 22px; }
   .mtab { flex: 1; padding: 9px; background: none; border: none; font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 2px; text-transform: uppercase; color: var(--subtle); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
   .mtab.active { color: var(--gold); border-bottom-color: var(--gold); }
@@ -899,23 +890,6 @@
 </section>
 
 
-<!-- TICKER -->
-<div class="ticker-band">
-  <div class="ticker-track">
-    <span class="ticker-item">A320 Systems <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">Flows &amp; Procedures <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">MCDU Programming <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">Demo Class Available <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">Start Your Climb <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">A320 Type Rating Prep <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">A320 Systems <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">Flows &amp; Procedures <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">MCDU Programming <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">Demo Class Available <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">Start Your Climb <span class="ticker-sep">◆</span></span>
-    <span class="ticker-item">A320 Type Rating Prep <span class="ticker-sep">◆</span></span>
-  </div>
-</div>
 
 
 <!-- CAREER GUIDANCE -->
@@ -1155,7 +1129,7 @@
             <div class="fgroup"><label>Full Name *</label><input type="text" name="name" id="eqName" placeholder="Your name" required/></div>
             <div class="fgroup"><label>Age *</label><input type="number" name="age" id="eqAge" placeholder="25" min="16" max="65"/></div>
           </div>
-          <div class="fgroup"><label>WhatsApp Number *</label><input type="tel" name="whatsapp" id="eqWhatsapp" placeholder="+91XXXXXXXXXX" required/></div>
+          <div class="fgroup"><label>WhatsApp Number *</label><input type="tel" name="whatsapp" id="eqWhatsapp" placeholder="+91 10-digit number" inputmode="numeric" maxlength="10" required/></div>
           <div class="fgroup"><label>Email Address *</label><input type="email" name="email" id="eqEmail" placeholder="your@email.com" required/></div>
           <div class="fgroup">
             <label>Course Interested In *</label>
@@ -1246,7 +1220,7 @@
         <div class="modal-fgroup"><label>Full Name *</label><input type="text" id="regName" placeholder="Your name"/></div>
         <div class="modal-fgroup"><label>Email *</label><input type="email" id="regEmail" placeholder="you@email.com"/></div>
         <div class="modal-frow2">
-          <div class="modal-fgroup"><label>WhatsApp</label><input type="tel" id="regWhatsapp" placeholder="+91…"/></div>
+          <div class="modal-fgroup"><label>WhatsApp</label><input type="tel" id="regWhatsapp" placeholder="+91 10-digit no." inputmode="numeric" maxlength="10"/></div>
           <div class="modal-fgroup"><label>Age</label><input type="number" id="regAge" placeholder="25"/></div>
         </div>
         <div class="modal-fgroup"><label>Password *</label><input type="password" id="regPass" placeholder="Min 8 characters"/></div>
@@ -1279,6 +1253,18 @@
   .upi-idbox-label { font-size:0.66rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); }
   .upi-idbox-val { font-family:monospace; font-size:0.95rem; color:var(--ink); font-weight:600; word-break:break-all; }
   .upi-hint { font-size:0.77rem; color:var(--muted); line-height:1.6; margin:0 0 14px; }
+  .upi-coupon { display:flex; gap:8px; margin-bottom:6px; }
+  .upi-coupon input {
+    flex:1; padding:11px 14px; background:var(--cream); border:1px solid var(--line-md);
+    border-radius:var(--radius); font-family:'DM Sans',sans-serif; font-size:0.9rem; color:var(--ink);
+    outline:none; transition:border-color 0.2s; text-transform:uppercase;
+  }
+  .upi-coupon input::placeholder { color:var(--subtle); text-transform:none; }
+  .upi-coupon input:focus { border-color:var(--gold); background:#fff; }
+  .upi-coupon button { flex-shrink:0; white-space:nowrap; }
+  .upi-coupon-msg { font-size:0.78rem; min-height:16px; margin-bottom:12px; }
+  .upi-coupon-msg.err { color:#C0392B; }
+  .upi-coupon-msg.ok  { color:#27AE60; }
 </style>
 <div class="overlay" id="upiOverlay">
   <div class="modal-box" style="max-width:400px">
@@ -1289,6 +1275,11 @@
     </div>
     <div class="modal-body">
       <div class="upi-amount">Amount to pay: <strong id="upiAmount">₹0</strong></div>
+      <div class="upi-coupon">
+        <input id="couponInput" placeholder="Coupon code (optional)" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();applyCoupon();}"/>
+        <button class="btn btn-gold btn-sm" id="couponApplyBtn" onclick="applyCoupon()">Apply</button>
+      </div>
+      <div class="upi-coupon-msg" id="couponMsg"></div>
       <div class="upi-qr" id="upiQr"></div>
       <div class="upi-idbox">
         <div>
@@ -1298,7 +1289,7 @@
         <button class="btn btn-outline-light btn-sm" id="upiCopyBtn" onclick="copyUpiId()" style="color:var(--ink);border-color:rgba(0,0,0,0.2)">Copy</button>
       </div>
       <p class="upi-hint">Open any UPI app (GPay / PhonePe / Paytm), scan the QR or pay to the ID above, then enter the UTR / reference number from your payment confirmation.</p>
-      <div class="modal-fgroup"><label>UPI Reference / UTR Number *</label><input id="upiUtr" placeholder="e.g. 412345678901" onkeydown="if(event.key==='Enter')submitUpiClaim()"/></div>
+      <div class="modal-fgroup"><label>UPI Reference / UTR Number *</label><input id="upiUtr" placeholder="e.g. 412345678901" inputmode="numeric" maxlength="22" onkeydown="if(event.key==='Enter')submitUpiClaim()"/></div>
       <div class="modal-msg" id="upiMsg"></div>
       <button class="btn btn-gold" style="width:100%;padding:13px" id="upiPaidBtn" onclick="submitUpiClaim()">I've Paid</button>
       <button class="btn btn-outline-light btn-sm" style="width:100%;margin-top:10px;color:var(--ink);border-color:rgba(0,0,0,0.15);opacity:0.55;cursor:not-allowed" disabled title="Coming soon">Card / Netbanking — coming soon</button>
@@ -1562,25 +1553,40 @@ async function enrollCourse(courseId, courseName, btn) {
       if (json.message?.includes('already enrolled')) { alert(json.message); window.location.href = 'dashboard.html'; return; }
       alert(json.message || 'Could not start payment.'); return;
     }
-    openUpiModal(json.data);
+    openUpiModal(json.data, courseId);
   } catch { btn.disabled = false; btn.textContent = orig; alert('Network error. Please try again.'); }
 }
 
 /* ── UPI payment flow ── */
 let currentUpi = null;
 
-function openUpiModal({ enrollment_id, amount, course_name, upi_id, payee_name }) {
-  currentUpi = { enrollment_id };
-  const rupees = amount / 100;
-  document.getElementById('upiAmount').textContent     = '₹' + rupees.toLocaleString('en-IN');
+function openUpiModal({ enrollment_id, amount, course_name, upi_id, payee_name }, course_id) {
+  currentUpi = { enrollment_id, course_id, upi_id, payee_name, amount, coupon: null };
   document.getElementById('upiCourseSub').textContent  = course_name || 'Scan & pay, then enter your reference';
   document.getElementById('upiIdText').textContent     = upi_id;
   document.getElementById('upiUtr').value              = '';
   document.getElementById('upiCopyBtn').textContent    = 'Copy';
   const msg = document.getElementById('upiMsg'); msg.className = 'modal-msg'; msg.textContent = '';
 
-  // Build the UPI deep link and render a QR from it client-side — no image file.
-  const link = `upi://pay?pa=${encodeURIComponent(upi_id)}&pn=${encodeURIComponent(payee_name || 'Open Climb Aviation')}&am=${rupees.toFixed(2)}&cu=INR`;
+  // Reset the coupon field for each fresh modal open.
+  const cInput = document.getElementById('couponInput');
+  cInput.value = ''; cInput.disabled = false;
+  const cBtn = document.getElementById('couponApplyBtn');
+  cBtn.disabled = false; cBtn.textContent = 'Apply';
+  const cMsg = document.getElementById('couponMsg'); cMsg.className = 'upi-coupon-msg'; cMsg.textContent = '';
+
+  // Render the amount + QR from the (server-decided) amount.
+  renderUpiAmount(amount);
+
+  document.getElementById('upiOverlay').classList.add('open');
+}
+
+// Renders the "Amount to pay" text and (re)builds the UPI QR for the given paise
+// amount. Keeping these together guarantees the displayed amount == the QR amount.
+function renderUpiAmount(amount) {
+  const rupees = amount / 100;
+  document.getElementById('upiAmount').textContent = '₹' + rupees.toLocaleString('en-IN');
+  const link = `upi://pay?pa=${encodeURIComponent(currentUpi.upi_id)}&pn=${encodeURIComponent(currentUpi.payee_name || 'Open Climb Aviation')}&am=${rupees.toFixed(2)}&cu=INR`;
   const qrBox = document.getElementById('upiQr');
   qrBox.innerHTML = '';
   if (window.QRCode) {
@@ -1588,8 +1594,41 @@ function openUpiModal({ enrollment_id, amount, course_name, upi_id, payee_name }
   } else {
     qrBox.innerHTML = `<a href="${link}" style="color:var(--gold);font-weight:600">Tap to pay via your UPI app →</a>`;
   }
+}
 
-  document.getElementById('upiOverlay').classList.add('open');
+// Validates a coupon on the backend and, on success, updates the displayed
+// amount + QR. Invalid codes show an error and keep the full price.
+async function applyCoupon() {
+  if (!currentUpi) return;
+  const input = document.getElementById('couponInput');
+  const msg   = document.getElementById('couponMsg');
+  const code  = input.value.trim();
+  msg.className = 'upi-coupon-msg';
+  if (!code) { msg.className = 'upi-coupon-msg err'; msg.textContent = 'Enter a coupon code to apply.'; return; }
+
+  const btn = document.getElementById('couponApplyBtn');
+  const orig = btn.textContent; btn.disabled = true; btn.textContent = '…';
+  try {
+    const json = await apiCall('/payment/upi-init', 'POST', { course_id: currentUpi.course_id, coupon: code });
+    if (json.success && json.data.coupon_applied) {
+      currentUpi.enrollment_id = json.data.enrollment_id;
+      currentUpi.amount        = json.data.amount;
+      currentUpi.coupon        = json.data.coupon_code;
+      renderUpiAmount(json.data.amount);
+      msg.className = 'upi-coupon-msg ok';
+      msg.textContent = `Coupon applied! New amount: ₹${(json.data.amount / 100).toLocaleString('en-IN')}.`;
+      input.disabled = true; btn.textContent = 'Applied'; // keep disabled
+    } else if (json.success) {
+      btn.disabled = false; btn.textContent = orig;
+      msg.className = 'upi-coupon-msg err'; msg.textContent = 'This coupon isn’t valid for this course.';
+    } else {
+      btn.disabled = false; btn.textContent = orig;
+      msg.className = 'upi-coupon-msg err'; msg.textContent = json.message || 'Invalid coupon code.';
+    }
+  } catch {
+    btn.disabled = false; btn.textContent = orig;
+    msg.className = 'upi-coupon-msg err'; msg.textContent = 'Network error. Please try again.';
+  }
 }
 
 function closeUpiModal() {
@@ -1612,11 +1651,17 @@ async function submitUpiClaim() {
   const utr = document.getElementById('upiUtr').value.trim();
   msg.className = 'modal-msg';
   if (!utr) { msg.className = 'modal-msg err'; msg.textContent = 'Please enter your UPI reference (UTR) number.'; return; }
+  // UPI UTR is standardly 12 digits; accept 12–22 digits (numbers only).
+  if (!/^\d{12,22}$/.test(utr)) {
+    msg.className = 'modal-msg err';
+    msg.textContent = 'Enter a valid UTR — the 12-digit reference number from your UPI app (numbers only).';
+    return;
+  }
 
   const btn = document.getElementById('upiPaidBtn');
   const orig = btn.textContent; btn.disabled = true; btn.textContent = 'Submitting…';
   try {
-    const json = await apiCall('/payment/upi-claim', 'POST', { enrollment_id: currentUpi.enrollment_id, utr });
+    const json = await apiCall('/payment/upi-claim', 'POST', { enrollment_id: currentUpi.enrollment_id, utr, coupon: currentUpi.coupon });
     btn.disabled = false; btn.textContent = orig;
     if (json.success) {
       closeUpiModal();
@@ -1656,6 +1701,17 @@ function openRazorpay({ order_id, amount, currency, key_id, enrollment_id, cours
 
 /* ── Enquiry form — submits via FormSubmit to client email ── */
 document.getElementById('enquiryForm').addEventListener('submit', function(e) {
+  const msg = document.getElementById('enquiryMsg');
+  const wa  = document.getElementById('eqWhatsapp').value.trim();
+  // India-only: WhatsApp must be exactly 10 digits (numbers only).
+  if (!/^\d{10}$/.test(wa)) {
+    e.preventDefault();
+    msg.className = 'form-msg err';
+    msg.textContent = 'Please enter a valid 10-digit WhatsApp number (numbers only, no +91).';
+    document.getElementById('eqWhatsapp').focus();
+    return;
+  }
+  msg.className = 'form-msg'; msg.textContent = '';
   const btn = e.target.querySelector('button[type="submit"]');
   btn.disabled = true; btn.textContent = 'Sending…';
   setTimeout(() => { btn.disabled = false; btn.textContent = 'Submit Enquiry →'; }, 4000);
@@ -1707,11 +1763,16 @@ async function doRegister() {
   const name = document.getElementById('regName').value.trim();
   const email = document.getElementById('regEmail').value.trim();
   const pass  = document.getElementById('regPass').value;
+  const wa    = document.getElementById('regWhatsapp').value.trim();
   if (!name || !email || !pass) { msgEl.className='modal-msg err'; msgEl.textContent='Name, email and password are required.'; return; }
+  if (name.length < 2 || !/[A-Za-z]/.test(name)) { msgEl.className='modal-msg err'; msgEl.textContent='Please enter your full name — letters, at least 2 characters (not just numbers).'; return; }
+  if (pass.trim().length === 0) { msgEl.className='modal-msg err'; msgEl.textContent='Password cannot be only spaces.'; return; }
+  if (pass.length < 8) { msgEl.className='modal-msg err'; msgEl.textContent='Password must be at least 8 characters.'; return; }
+  if (wa && !/^\d{10}$/.test(wa)) { msgEl.className='modal-msg err'; msgEl.textContent='WhatsApp number must be exactly 10 digits.'; return; }
   try {
     const json = await apiCall('/auth/register', 'POST', {
       name, email, password: pass,
-      whatsapp: document.getElementById('regWhatsapp').value.trim() || null,
+      whatsapp: wa || null,
       age:      document.getElementById('regAge').value || null
     });
     if (json.success) {
