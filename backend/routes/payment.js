@@ -73,12 +73,12 @@ function resolveCoupon(coupon, price) {
 }
 
 // Email via Resend (HTTP API) — Render blocks outbound SMTP, so nodemailer + Gmail
-// can't connect. Send from the default onboarding sender until a domain is verified
-// in Resend; replies route to ADMIN_EMAIL.
+// can't connect. Send from the verified custom domain; replies route to
+// ADMIN_EMAIL.
 // Only construct the client if the key is present so the server still boots
 // without it (the Resend constructor throws on a missing key).
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const MAIL_FROM     = 'Open Climb Aviation <onboarding@resend.dev>';
+const MAIL_FROM     = 'Open Climb Aviation <noreply@openclimbaviationacademy.com>';
 const MAIL_REPLY_TO = process.env.ADMIN_EMAIL || 'training.ocaa@gmail.com';
 
 // Fire-and-forget sender with error logging (mirrors the old transporter.sendMail).

@@ -14,12 +14,12 @@ const supabase = createClient(
 
 // ── Mailer ────────────────────────────────────────────────────────────────────
 // Resend (HTTP API) instead of SMTP — Render blocks outbound SMTP so nodemailer
-// + Gmail times out. Until a custom domain is verified in Resend, send from the
-// default onboarding sender; replies route to ADMIN_EMAIL.
+// + Gmail times out. Send from the verified custom domain; replies route to
+// ADMIN_EMAIL.
 // Only construct the client if the key is present so the server still boots
 // without it (the Resend constructor throws on a missing key).
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-const MAIL_FROM     = 'Open Climb Aviation <onboarding@resend.dev>';
+const MAIL_FROM     = 'Open Climb Aviation <noreply@openclimbaviationacademy.com>';
 const MAIL_REPLY_TO = process.env.ADMIN_EMAIL || 'training.ocaa@gmail.com';
 
 // Fire-and-forget sender with error logging. Mirrors the old transporter.sendMail

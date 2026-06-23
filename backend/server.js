@@ -24,9 +24,8 @@ const allowedOrigins = [
   'http://127.0.0.1:5500',
   'https://jaywebsiteklm.netlify.app',          // previous live Netlify site
   'https://open-climb-aviation.vercel.app',     // current live Vercel production site
-  // TODO: add the final custom domain(s) once purchased, e.g.:
-  // 'https://openclimbaviation.com',
-  // 'https://www.openclimbaviation.com',
+  'https://openclimbaviationacademy.com',       // live custom domain
+  'https://www.openclimbaviationacademy.com',   // live custom domain (www)
 ].filter(Boolean);
 
 // Allow Vercel preview deployments (e.g. https://open-climb-aviation-<hash>.vercel.app)
