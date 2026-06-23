@@ -247,37 +247,12 @@
     box-shadow: 0 16px 48px rgba(0,0,0,0.12);
     background: var(--white); position: relative;
   }
-  .hero-card-main img {
-    width: 100%; height: 340px; object-fit: cover; object-position: center 15%;
+  /* A320 hero photo — full 3:2 frame so the landscape image shows undistorted */
+  .hero-card-main img,
+  .hero-card-photo {
+    width: 100%; aspect-ratio: 3 / 2; height: auto;
+    object-fit: cover; object-position: center;
     display: block;
-  }
-  /* A320 brand visual — premium charcoal/gold gradient + climbing-jet silhouette */
-  .hero-card-visual {
-    position: relative; width: 100%; height: 340px; overflow: hidden;
-    background:
-      radial-gradient(130% 90% at 78% 12%, rgba(212,168,67,0.30), rgba(212,168,67,0) 58%),
-      linear-gradient(158deg, #2C2618 0%, #1A1610 52%, #0D0A06 100%);
-  }
-  .hcv-grid {
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(184,137,42,0.13) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(184,137,42,0.13) 1px, transparent 1px);
-    background-size: 32px 32px;
-    -webkit-mask-image: radial-gradient(125% 85% at 58% 42%, #000 32%, transparent 78%);
-            mask-image: radial-gradient(125% 85% at 58% 42%, #000 32%, transparent 78%);
-  }
-  .hcv-glow {
-    position: absolute; right: -34px; top: -34px; width: 190px; height: 190px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(212,168,67,0.45), rgba(212,168,67,0) 68%);
-  }
-  .hcv-runway {
-    position: absolute; left: 50%; bottom: -4px; width: 220%; height: 130px; transform: translateX(-50%);
-    background: radial-gradient(58% 100% at 50% 100%, rgba(212,168,67,0.20), rgba(212,168,67,0) 72%);
-  }
-  .hcv-plane {
-    position: absolute; inset: 0; margin: auto; width: 80%; height: auto;
-    filter: drop-shadow(0 12px 26px rgba(0,0,0,0.55));
   }
   .hero-card-badge {
     position: absolute; top: 14px; left: 14px;
@@ -704,8 +679,13 @@
      RESPONSIVE
   ══════════════════════════════════════════ */
   @media (max-width: 1060px) {
-    .hero-inner     { grid-template-columns: 1fr; }
-    .hero-right     { display: none; }
+    /* minmax(0,1fr) stops the single column from stretching to content width */
+    .hero-inner     { grid-template-columns: minmax(0, 1fr); }
+    /* Show the A320 card full-width on mobile; drop the rotated secondary card. */
+    .hero-right       { align-items: stretch; min-width: 0; width: 100%; }
+    .hero-card-main   { width: 100%; max-width: 100%; }
+    .hero-card-secondary { display: none; }
+    .hero-card-logo   { right: 14px; bottom: -14px; }
     .instr-wrap     { grid-template-columns: 1fr; }
     .instr-photo-col{ min-height: 340px; }
     .courses-grid   { grid-template-columns: 1fr; }
@@ -804,29 +784,9 @@
     <!-- Right: instructor + poster cards -->
     <div class="hero-right">
       <div class="hero-card-main">
-        <!-- A320 brand visual (charcoal/gold gradient + climbing-jet silhouette).
-             Swap-in spot for a real photo: drop assets/a320-hero.jpeg and replace
-             this .hero-card-visual block with an <img>. -->
-        <div class="hero-card-visual" role="img" aria-label="Airbus A320 — Pre-Type Rating">
-          <div class="hcv-grid"></div>
-          <div class="hcv-glow"></div>
-          <div class="hcv-runway"></div>
-          <svg class="hcv-plane" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <defs>
-              <linearGradient id="hcvGold" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#F6E3A6"/>
-                <stop offset="0.5" stop-color="#D4A843"/>
-                <stop offset="1" stop-color="#9A7220"/>
-              </linearGradient>
-            </defs>
-            <!-- contrail -->
-            <path d="M120 232 L120 150" stroke="url(#hcvGold)" stroke-width="3" stroke-linecap="round" opacity="0.18"/>
-            <g transform="rotate(20 120 120)">
-              <path d="M120 28 C124 28 128 36 129 52 L129 96 L196 138 L196 154 L129 130 L129 168 L148 184 L148 196 L120 188 L92 196 L92 184 L111 168 L111 130 L44 154 L44 138 L111 96 L111 52 C112 36 116 28 120 28 Z"
-                    fill="url(#hcvGold)" stroke="#F6E3A6" stroke-width="1.2" stroke-linejoin="round"/>
-            </g>
-          </svg>
-        </div>
+        <img class="hero-card-photo" src="assets/a320-dashboard.jpg"
+             alt="Airbus A320 — Pre-Type Rating"
+             onerror="this.parentElement.style.background='var(--warm)'"/>
         <span class="hero-card-badge">Now Enrolling</span>
         <div class="hero-card-foot">
           <div class="hero-card-name">AIRBUS A320</div>
