@@ -10,10 +10,13 @@
   <meta name="robots" content="index, follow"/>
   <link rel="canonical" href="https://www.openclimbaviationacademy.com/"/>
 
-  <!-- Favicon / logo -->
-  <link rel="icon" href="assets/logo.jpeg" type="image/jpeg"/>
-  <link rel="shortcut icon" href="assets/logo.jpeg" type="image/jpeg"/>
-  <link rel="apple-touch-icon" href="assets/logo.jpeg"/>
+  <!-- Favicon / logo (lightweight 32px PNG instead of the 71KB JPEG) -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png"/>
+  <link rel="shortcut icon" type="image/png" href="assets/favicon-32.png"/>
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png"/>
+
+  <!-- Preload the hero emblem (LCP image) -->
+  <link rel="preload" as="image" href="assets/logo.webp" type="image/webp" fetchpriority="high"/>
 
   <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
   <meta property="og:type" content="website"/>
@@ -60,9 +63,87 @@
     }
   }
   </script>
+
+  <!-- Structured data: Courses + Offers (prices) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": [
+      {
+        "@type": "Course",
+        "name": "A320 Systems",
+        "description": "FCOM-grounded A320 systems deep-dive — cockpit layout & controls, all A320 systems, all system limitations. 100% online, live interactive sessions.",
+        "provider": { "@type": "EducationalOrganization", "name": "Open Climb Aviation Academy", "url": "https://www.openclimbaviationacademy.com/" },
+        "offers": { "@type": "Offer", "price": "25000", "priceCurrency": "INR", "category": "Paid", "url": "https://www.openclimbaviationacademy.com/#courses" }
+      },
+      {
+        "@type": "Course",
+        "name": "Flows & Procedures incl. MCDU",
+        "description": "Full cockpit preparation flows, MCDU programming (complete flight), PF & PM duties, normal & non-normal checklists, approach briefings. 100% online, live.",
+        "provider": { "@type": "EducationalOrganization", "name": "Open Climb Aviation Academy", "url": "https://www.openclimbaviationacademy.com/" },
+        "offers": { "@type": "Offer", "price": "10000", "priceCurrency": "INR", "category": "Paid", "url": "https://www.openclimbaviationacademy.com/#courses" }
+      },
+      {
+        "@type": "Course",
+        "name": "A320 Systems + Flows & Procedures",
+        "description": "The complete Pre-TR package — A320 systems plus full cockpit flows, MCDU and PF/PM duties. Everything needed to walk into the Type Rating fully prepared.",
+        "provider": { "@type": "EducationalOrganization", "name": "Open Climb Aviation Academy", "url": "https://www.openclimbaviationacademy.com/" },
+        "offers": { "@type": "Offer", "price": "33000", "priceCurrency": "INR", "category": "Paid", "url": "https://www.openclimbaviationacademy.com/#courses" }
+      },
+      {
+        "@type": "Course",
+        "name": "Career Counselling Session",
+        "description": "One-on-one aviation career guidance with Capt. Jay Kotecha — personalized roadmap, flight school selection, DGCA requirements, Type Rating & airline prep planning.",
+        "provider": { "@type": "EducationalOrganization", "name": "Open Climb Aviation Academy", "url": "https://www.openclimbaviationacademy.com/" },
+        "offers": { "@type": "Offer", "price": "5000", "priceCurrency": "INR", "category": "Paid", "url": "https://www.openclimbaviationacademy.com/#courses" }
+      }
+    ]
+  }
+  </script>
+
+  <!-- Structured data: Reviews / ratings.
+       The two reviews below are real student testimonials. To enable a star
+       rating in search results, JAY: add an aggregateRating block with REAL
+       numbers, e.g. inside the EducationalOrganization above:
+         "aggregateRating": { "@type": "AggregateRating", "ratingValue": "[JAY: 4.9]", "reviewCount": "[JAY: 12]" }
+       Do not publish invented numbers — only add it once the figures are real. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "Open Climb Aviation Academy",
+    "url": "https://www.openclimbaviationacademy.com/",
+    "review": [
+      {
+        "@type": "Review",
+        "author": { "@type": "Person", "name": "Vatsal Gajera" },
+        "reviewBody": "Capt. Jay conducted an excellent A320 Pre-Type Rating course, covering all major aircraft systems and operational flows in a clear, structured manner. I now feel much more confident and ready to begin TR."
+      },
+      {
+        "@type": "Review",
+        "author": { "@type": "Person", "name": "Lochini" },
+        "reviewBody": "Jay has a remarkable ability to simplify complex topics. Transitioning from piston aircraft to jets, I found his explanations clear, practical and easy to retain. Highly recommend him for type-rating prep."
+      }
+    ]
+  }
+  </script>
+
+  <!-- ════════ PostHog analytics ════════
+       JAY: paste your PostHog Project API key in place of POSTHOG_KEY below
+       (Project Settings → Project API Key). If your project is in the EU
+       region, change api_host to https://eu.i.posthog.com. -->
+  <script>
+  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug getPageViewId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+  posthog.init('POSTHOG_KEY', { api_host: 'https://us.i.posthog.com', person_profiles: 'identified_only', capture_pageview: true });
+  /* Helper used by every CTA on the page. No-ops safely if PostHog is blocked. */
+  window.track = function(event, props) { try { window.posthog && posthog.capture(event, props || {}); } catch (e) {} };
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <!-- 3 families: Playfair Display (headings), DM Sans (body), Space Mono (data/labels). Bebas Neue dropped. -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 
   <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -79,6 +160,9 @@
     --gold:      #B8892A;
     --gold-dk:   #9A7220;
     --gold-lt:   #D4A843;
+    /* Darker gold reserved for SMALL text on light backgrounds (clears WCAG AA
+       4.5:1). Use --gold only for large headings/icons/accents. */
+    --gold-text: #856017;
     --gold-bg:   rgba(184,137,42,0.10);
     --gold-bd:   rgba(184,137,42,0.22);
     --gold-glow: rgba(184,137,42,0.35);
@@ -133,7 +217,7 @@
     flex-shrink: 0;
   }
   .nav-brand-text { border-left: 1px solid rgba(184,137,42,0.25); padding-left: 14px; }
-  .nav-wm-main { font-family: 'Bebas Neue', sans-serif; font-size: 1.35rem; letter-spacing: 4px; color: #fff; line-height: 1.1; }
+  .nav-wm-main { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 1.12rem; letter-spacing: 2.5px; color: #fff; line-height: 1.1; }
   .nav-wm-sub  { font-family: 'Space Mono', monospace; font-size: 0.42rem; letter-spacing: 3px; color: var(--gold); margin-top: 5px; text-transform: uppercase; }
 
   .nav-collapse { display: flex; align-items: center; gap: 20px; margin-left: auto; }
@@ -149,7 +233,7 @@
   .nav-actions { display: flex; gap: 10px; align-items: center; flex-shrink: 0; }
   .nav-actions .btn { padding: 8px 18px; font-size: 0.72rem; }
 
-  /* Hamburger — shown on mobile only (see @media max-width:720px) */
+  /* Hamburger — shown on mobile only (see @media (max-width:768px)) */
   .nav-toggle {
     display: none;
     width: 44px; height: 44px; margin-left: auto;
@@ -350,7 +434,7 @@
   }
   .hstat { flex: 1; padding: 14px 16px; text-align: center; border-right: 1px solid rgba(184,137,42,0.15); }
   .hstat:last-child { border-right: none; }
-  .hstat-num { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--gold); line-height: 1; display: block; }
+  .hstat-num { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 1.7rem; color: var(--gold); line-height: 1; display: block; }
   .hstat-lbl { font-family: 'Space Mono', monospace; font-size: 0.42rem; letter-spacing: 2.5px; text-transform: uppercase; color: rgba(255,255,255,0.38); display: block; margin-top: 4px; }
 
   @media (max-width: 768px) {
@@ -381,7 +465,7 @@
   .section-head { text-align: center; margin-bottom: 60px; }
   .sec-kicker {
     font-family: 'Space Mono', monospace; font-size: 0.6rem;
-    letter-spacing: 0.32em; text-transform: uppercase; color: var(--gold);
+    letter-spacing: 0.32em; text-transform: uppercase; color: var(--gold-text);
     margin-bottom: 16px;
   }
   .sec-title {
@@ -421,7 +505,7 @@
     width: 50px; height: 50px; border-radius: var(--radius);
     background: var(--gold-bg); border: 1px solid var(--gold-bd);
     display: flex; align-items: center; justify-content: center;
-    font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: 1px; color: var(--gold);
+    font-family: 'Space Mono', monospace; font-weight: 700; font-size: 1.25rem; letter-spacing: 1px; color: var(--gold);
   }
   .roadmap-step-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.35rem; color: var(--ink); line-height: 1.2; }
   .roadmap-step-body { font-size: 0.9rem; font-weight: 300; color: var(--muted); line-height: 1.85; flex: 1; }
@@ -462,7 +546,7 @@
   .course-icon svg { width: 22px; height: 22px; }
   .course-badge {
     font-family: 'Space Mono', monospace; font-size: 0.48rem; letter-spacing: 2px;
-    text-transform: uppercase; color: var(--gold);
+    text-transform: uppercase; color: var(--gold-text);
     background: var(--gold-bg); border: 1px solid var(--gold-bd);
     padding: 5px 10px; border-radius: var(--radius);
   }
@@ -470,7 +554,7 @@
     font-family: 'Playfair Display', serif; font-weight: 700;
     font-size: 1.5rem; color: var(--ink); line-height: 1.2; margin-bottom: 10px;
   }
-  .course-price { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: var(--gold); line-height: 1; }
+  .course-price { font-family: 'Playfair Display', serif; font-weight: 900; font-size: 2.5rem; color: var(--gold); line-height: 1; }
   .course-meta { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
   .course-meta-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 300; color: var(--muted); }
   .course-meta-item svg { width: 15px; height: 15px; color: var(--gold); flex-shrink: 0; }
@@ -490,7 +574,7 @@
     display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
     box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   }
-  .demo-banner-tag { font-family: 'Space Mono', monospace; font-size: 0.52rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
+  .demo-banner-tag { font-family: 'Space Mono', monospace; font-size: 0.52rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-text); margin-bottom: 5px; }
   .demo-banner-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.3rem; color: var(--ink); }
 
   /* ════════════════════════════════
@@ -518,7 +602,7 @@
     border: 1px solid rgba(184,137,42,0.35); border-radius: var(--radius);
     padding: 12px 18px; color: #fff;
   }
-  .instr-badge-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.05rem; letter-spacing: 3px; }
+  .instr-badge-name { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.95rem; letter-spacing: 2px; }
   .instr-badge-role { font-family: 'Space Mono', monospace; font-size: 0.42rem; letter-spacing: 2px; color: var(--gold-lt); margin-top: 4px; text-transform: uppercase; }
 
   .instr-body { background: var(--white); padding: 52px 48px; border-left: 1px solid var(--line); display: flex; flex-direction: column; justify-content: center; }
@@ -563,8 +647,8 @@
     display: flex; align-items: center; justify-content: center; color: var(--gold);
   }
   .why-feat-icon svg { width: 22px; height: 22px; }
-  .why-feat-num { font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem; letter-spacing: 3px; color: var(--gold); }
-  .why-feat-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 2px; color: var(--ink); line-height: 1.1; }
+  .why-feat-num { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 0.78rem; letter-spacing: 2px; color: var(--gold-text); }
+  .why-feat-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.35rem; letter-spacing: 0; color: var(--ink); line-height: 1.15; }
   .why-feat-body { font-size: 0.9rem; font-weight: 300; color: var(--muted); line-height: 1.85; flex: 1; }
 
   /* ════════════════════════════════
@@ -591,7 +675,7 @@
   .tst-author { display: flex; align-items: center; gap: 20px; margin: 0; border-top: 1px solid var(--line); padding-top: 22px; }
   .tst-photo { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid var(--gold-bd); background: var(--gold-bg); flex-shrink: 0; box-shadow: 0 6px 18px var(--gold-glow); }
   .tst-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.25rem; color: var(--ink); line-height: 1.2; }
-  .tst-cred { font-family: 'Space Mono', monospace; font-size: 0.68rem; letter-spacing: 1px; color: var(--gold); margin-top: 5px; text-transform: uppercase; }
+  .tst-cred { font-family: 'Space Mono', monospace; font-size: 0.68rem; letter-spacing: 1px; color: var(--gold-text); margin-top: 5px; text-transform: uppercase; }
 
   /* ════════════════════════════════
      CONTACT
@@ -612,7 +696,7 @@
     background: var(--gold-bg); border: 1px solid var(--gold-bd);
     display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.1rem;
   }
-  .contact-link-label { font-family: 'Space Mono', monospace; font-size: 0.48rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); }
+  .contact-link-label { font-family: 'Space Mono', monospace; font-size: 0.48rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-text); }
   .contact-link-val { font-size: 0.92rem; font-weight: 500; color: var(--ink); margin-top: 3px; }
 
   .contact-form-box {
@@ -652,7 +736,7 @@
     flex-shrink: 0;
   }
   .footer-brand-text { border-left: 1px solid rgba(184,137,42,0.20); padding-left: 14px; }
-  .footer-logo-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 4px; color: #fff; line-height: 1.1; }
+  .footer-logo-name { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 1.05rem; letter-spacing: 2.5px; color: #fff; line-height: 1.1; }
   .footer-logo-sub { font-family: 'Space Mono', monospace; font-size: 0.42rem; letter-spacing: 2px; color: var(--gold); margin-top: 5px; text-transform: uppercase; }
   .footer-tagline { font-size: 0.88rem; font-weight: 300; color: rgba(255,255,255,0.36); line-height: 1.75; }
   .footer-col-head { font-family: 'Space Mono', monospace; font-size: 0.52rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 18px; }
@@ -735,7 +819,8 @@
     .footer-top { grid-template-columns: 1fr 1fr; }
     .why-features { grid-template-columns: 1fr 1fr; }
   }
-  @media (max-width: 720px) {
+  /* Consolidated mobile breakpoint (was a split 720/768 with an overlapping gap). */
+  @media (max-width: 768px) {
     .nav-toggle { display: flex; }
     /* Let the brand text shrink/truncate so the hamburger always fits. */
     .nav-brand { flex-shrink: 1; min-width: 0; gap: 10px; }
@@ -773,6 +858,98 @@
     .hstat { border-right: none; border-bottom: 1px solid rgba(184,137,42,0.15); }
     .hstat:last-child { border-bottom: none; }
   }
+
+  /* ════════════════════════════════
+     CONVERSION ELEMENTS (added in audit)
+  ════════════════════════════════ */
+  /* Qualifier line — who this is for, right under the hero sub */
+  .hero-qualifier {
+    font-size: 0.9rem; font-weight: 400; color: var(--gold-lt);
+    line-height: 1.6; margin: 0 0 18px; max-width: 480px;
+    border-left: 2px solid var(--gold); padding-left: 12px;
+    animation: fadeInUp 0.7s ease 0.38s both;
+  }
+
+  /* Risk-reversal microcopy placed under primary CTAs */
+  .risk-line {
+    font-size: 0.82rem; font-weight: 400; color: var(--muted);
+    margin-top: 12px; display: flex; align-items: center; gap: 7px; justify-content: center;
+  }
+  .risk-line::before { content: '✓'; color: #1E8E4E; font-weight: 800; }
+  .hero-ctas + .risk-line { justify-content: flex-start; color: rgba(255,255,255,0.6); }
+
+  /* Above-the-fold proof strip */
+  .proof-strip {
+    display: flex; flex-wrap: wrap; gap: 10px 0; margin-top: 24px;
+    border: 1px solid rgba(184,137,42,0.22); border-radius: var(--radius);
+    background: rgba(0,0,0,0.22); backdrop-filter: blur(8px); overflow: hidden;
+    max-width: 520px; animation: fadeInUp 0.7s ease 0.64s both;
+  }
+  .proof-item { flex: 1; min-width: 120px; padding: 12px 16px; text-align: center; border-right: 1px solid rgba(184,137,42,0.15); }
+  .proof-item:last-child { border-right: none; }
+  .proof-num { display: block; font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.25rem; color: var(--gold-lt); line-height: 1.1; }
+  .proof-lbl { display: block; font-family: 'Space Mono', monospace; font-size: 0.5rem; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.55); margin-top: 5px; }
+
+  /* Urgency banner near courses */
+  .urgency-banner {
+    max-width: 1100px; margin: 0 auto 28px; text-align: center;
+    background: var(--gold-bg); border: 1px dashed var(--gold-bd); border-radius: var(--radius);
+    padding: 13px 20px; font-size: 0.9rem; font-weight: 500; color: var(--ink-mid);
+  }
+  .urgency-banner strong { color: var(--gold-text); }
+
+  /* Make FCOM-grounded prominent in the differentiators */
+  .why-fcom { border-color: var(--gold-bd); box-shadow: 0 0 0 1px var(--gold-bd) inset; }
+  .why-fcom .why-feat-title { color: var(--gold-text); }
+  .why-flag {
+    align-self: flex-start; font-family: 'Space Mono', monospace; font-size: 0.5rem;
+    letter-spacing: 1.5px; text-transform: uppercase; color: #fff; background: var(--gold-dk);
+    padding: 4px 9px; border-radius: var(--radius);
+  }
+
+  /* ════════════════════════════════
+     FAQ
+  ════════════════════════════════ */
+  #faq { background: var(--cream); padding: 96px max(24px,4%); }
+  .faq-inner { max-width: 820px; margin: 0 auto; }
+  .faq-list { display: flex; flex-direction: column; gap: 14px; }
+  .faq-item {
+    background: var(--white); border: 1px solid var(--line-md); border-radius: var(--radius);
+    overflow: hidden; transition: border-color 0.2s;
+  }
+  .faq-item[open] { border-color: var(--gold-bd); }
+  .faq-q {
+    list-style: none; cursor: pointer; padding: 20px 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.08rem; color: var(--ink);
+  }
+  .faq-q::-webkit-details-marker { display: none; }
+  .faq-q::after { content: '+'; font-family: 'DM Sans', sans-serif; font-size: 1.5rem; color: var(--gold-text); flex-shrink: 0; transition: transform 0.2s; }
+  .faq-item[open] .faq-q::after { transform: rotate(45deg); }
+  .faq-a { padding: 0 24px 22px; font-size: 0.92rem; font-weight: 300; color: var(--muted); line-height: 1.85; }
+
+  /* ════════════════════════════════
+     STICKY MOBILE CTA BAR (mobile only)
+  ════════════════════════════════ */
+  .sticky-cta { display: none; }
+  @media (max-width: 768px) {
+    .sticky-cta {
+      display: flex; gap: 10px; align-items: stretch;
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 1500;
+      padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+      background: rgba(26,22,16,0.97); backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(184,137,42,0.25);
+    }
+    .sticky-cta .btn { flex: 1; padding: 14px 16px; }
+    .sticky-cta-wa {
+      flex: 0 0 auto; width: 52px; display: flex; align-items: center; justify-content: center;
+      background: #25D366; color: #fff; border-radius: var(--radius);
+    }
+    .sticky-cta-wa svg { width: 24px; height: 24px; }
+    /* Stop the sticky bar from covering the footer / floating WhatsApp button. */
+    body { padding-bottom: 76px; }
+    .wa-float { display: none; }
+  }
   </style>
 </head>
 <body>
@@ -780,7 +957,7 @@
 <!-- NAVBAR -->
 <nav class="navbar">
   <a href="#" class="nav-brand">
-    <img src="assets/logo.jpeg" class="nav-logo" alt="Open Climb Aviation" onerror="this.style.display='none'"/>
+    <img src="assets/logo.webp" class="nav-logo" alt="Open Climb Aviation" width="56" height="56" onerror="this.style.display='none'"/>
     <div class="nav-brand-text">
       <div class="nav-wm-main">Open Climb Aviation Academy</div>
       <div class="nav-wm-sub">Start Your Climb</div>
@@ -788,14 +965,15 @@
   </a>
   <div class="nav-collapse" id="navCollapse">
     <div class="nav-links">
+      <a href="#why-us" onclick="event.preventDefault();document.getElementById('why-us').scrollIntoView({behavior:'smooth'})">Why Us</a>
       <a href="#courses" onclick="event.preventDefault();document.getElementById('courses').scrollIntoView({behavior:'smooth'})">Courses</a>
       <a href="#instructor" onclick="event.preventDefault();document.getElementById('instructor').scrollIntoView({behavior:'smooth'})">Instructor</a>
-      <a href="#why-us" onclick="event.preventDefault();document.getElementById('why-us').scrollIntoView({behavior:'smooth'})">Why Us</a>
+      <a href="#faq" onclick="event.preventDefault();document.getElementById('faq').scrollIntoView({behavior:'smooth'})">FAQ</a>
       <a href="#contact" onclick="event.preventDefault();document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Contact</a>
     </div>
     <div class="nav-actions" id="navActions">
       <button class="btn btn-outline-light btn-sm" onclick="openAuthModal('login')">Login</button>
-      <button class="btn btn-gold btn-sm" onclick="document.getElementById('courses').scrollIntoView({behavior:'smooth'})">Enroll Now</button>
+      <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27d%20like%20to%20book%20a%20free%20A320%20Pre-TR%20demo%20class." target="_blank" class="btn btn-gold btn-sm" onclick="track('cta_book_demo_click',{location:'nav'})">Book Free Demo</a>
     </div>
   </div>
   <button class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false" onclick="toggleMobileMenu()">☰</button>
@@ -881,7 +1059,7 @@
     <text x="1274" y="140" font-family="Space Mono, monospace" font-size="10" fill="rgba(184,137,42,0.30)" letter-spacing="0.5">A320-200</text>
   </svg>
   <!-- Logo as large background watermark -->
-  <img src="assets/logo.jpeg" class="hero-wm" alt="" aria-hidden="true"/>
+  <img src="assets/logo.webp" class="hero-wm" alt="" aria-hidden="true" width="540" height="540" loading="lazy"/>
   <!-- Radar scan sweep -->
   <div class="hero-scan"></div>
   <div class="hero-grid"></div>
@@ -916,18 +1094,21 @@
       <em>We Got You.</em>
     </h1>
     <p class="hero-sub">India's A320 Pre-Type Rating preparation by Capt. Jay Kotecha — FCOM-grounded, airline-standard, and built to make you cockpit-ready.</p>
+    <p class="hero-qualifier">[JAY: e.g. For CPL holders who've signed for an A320 TR and don't want to walk in cold.]</p>
     <p class="hero-led">✈️ &nbsp;Capt. Jay Kotecha &nbsp;·&nbsp; Commercial Pilot &nbsp;·&nbsp; A320 Type Rated</p>
     <div class="hero-ctas">
-      <button class="btn btn-gold" onclick="document.getElementById('courses').scrollIntoView({behavior:'smooth'})">Explore Courses</button>
-      <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27m%20interested%20in%20the%20Open%20Climb%20Aviation%20A320%20Pre-TR%20program." target="_blank" class="btn btn-outline-light">
+      <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27d%20like%20to%20book%20a%20free%20A320%20Pre-TR%20demo%20class." target="_blank" class="btn btn-gold" onclick="track('cta_book_demo_click',{location:'hero'})">Book Free Demo →</a>
+      <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27m%20interested%20in%20the%20Open%20Climb%20Aviation%20A320%20Pre-TR%20program." target="_blank" class="btn btn-outline-light" onclick="track('whatsapp_click',{location:'hero'})">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.556 4.126 1.523 5.855L0 24l6.313-1.497A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.876 9.876 0 01-5.031-1.375l-.36-.214-3.742.887.903-3.648-.235-.374A9.867 9.867 0 012.118 12C2.118 6.527 6.527 2.118 12 2.118S21.882 6.527 21.882 12 17.473 21.882 12 21.882z"/></svg>
-        Enroll via WhatsApp
+        WhatsApp
       </a>
     </div>
-    <div class="hero-stats">
-      <div class="hstat"><span class="hstat-num">A320</span><span class="hstat-lbl">Type Focused</span></div>
-      <div class="hstat"><span class="hstat-num">4</span><span class="hstat-lbl">Courses</span></div>
-      <div class="hstat"><span class="hstat-num">Free</span><span class="hstat-lbl">Demo Class</span></div>
+    <p class="risk-line">Start with a free demo — pay only if it's the right fit.</p>
+    <!-- Above-the-fold proof strip -->
+    <div class="proof-strip">
+      <div class="proof-item"><span class="proof-num">[JAY: X]</span><span class="proof-lbl">Pilots Prepped</span></div>
+      <div class="proof-item"><span class="proof-num">[JAY: airlines]</span><span class="proof-lbl">Trained for Their TRs</span></div>
+      <div class="proof-item"><span class="proof-num">⭐ [JAY: rating]</span><span class="proof-lbl">Student Rating</span></div>
     </div>
   </div>
 
@@ -938,12 +1119,291 @@
       <div class="hero-ring hero-ring-2"></div>
       <div class="hero-ring hero-ring-3"></div>
       <div class="hero-ring hero-ring-4"></div>
-      <img src="assets/logo.jpeg" class="hero-emblem-img" alt="Open Climb Aviation" onerror="this.style.background='var(--gold-bg)'"/>
+      <picture>
+        <source srcset="assets/logo.webp" type="image/webp"/>
+        <img src="assets/logo.jpeg" class="hero-emblem-img" alt="Open Climb Aviation" width="280" height="280" fetchpriority="high" decoding="async"/>
+      </picture>
     </div>
   </div>
 </section>
 
 
+
+
+<!-- WHY US -->
+<section id="why-us">
+  <div class="why-inner">
+    <div class="section-head">
+      <p class="sec-kicker">Why Open Climb</p>
+      <h2 class="sec-title">Training That <em>Matters.</em></h2>
+      <div class="sec-divider"></div>
+      <p class="sec-sub">Premium, focused, and built by pilots for pilots preparing for A320 line flying.</p>
+    </div>
+
+    <!-- One-line differentiators (fill these in — your sharpest edges) -->
+    <div class="why-features" style="margin-bottom:24px;">
+      <div class="why-feature" style="flex-direction:row;align-items:flex-start;gap:12px;padding:22px 24px;">
+        <span class="why-flag">Instructor</span>
+        <p class="why-feat-body" style="flex:1;color:var(--ink);font-weight:400;">[JAY: instructor edge — your sharpest one-line reason students pick you]</p>
+      </div>
+      <div class="why-feature why-fcom" style="flex-direction:row;align-items:flex-start;gap:12px;padding:22px 24px;">
+        <span class="why-flag">FCOM-Grounded</span>
+        <p class="why-feat-body" style="flex:1;color:var(--ink);font-weight:400;">[JAY: method/FCOM edge — straight from the A320 FCOM, airline-standard flows &amp; MCDU]</p>
+      </div>
+      <div class="why-feature" style="flex-direction:row;align-items:flex-start;gap:12px;padding:22px 24px;">
+        <span class="why-flag">Format</span>
+        <p class="why-feat-body" style="flex:1;color:var(--ink);font-weight:400;">[JAY: format edge — e.g. live 1:1, flexible scheduling, sim-style sessions]</p>
+      </div>
+      <div class="why-feature" style="flex-direction:row;align-items:flex-start;gap:12px;padding:22px 24px;">
+        <span class="why-flag">Low Risk</span>
+        <p class="why-feat-body" style="flex:1;color:var(--ink);font-weight:400;">[JAY: risk/demo edge — free demo first, pay only if it's the right fit]</p>
+      </div>
+    </div>
+
+    <div class="why-features">
+      <div class="why-feature">
+        <div class="why-feat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+        </div>
+        <div class="why-feat-num">01</div>
+        <div class="why-feat-title">A320 Focused</div>
+        <p class="why-feat-body">Every module built around the Airbus A320 family. No generic content — only what you need to walk into your TR confident and fully prepared.</p>
+      </div>
+      <div class="why-feature why-fcom">
+        <div class="why-feat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
+        </div>
+        <div class="why-feat-num">02</div>
+        <div class="why-feat-title">FCOM-Grounded &amp; Airline-Standard</div>
+        <p class="why-feat-body">Teaching driven straight from the A320 FCOM — airline-standard flows, scan patterns and MCDU procedures. Every session mirrors your sim day, 100% TR oriented.</p>
+      </div>
+      <div class="why-feature">
+        <div class="why-feat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="why-feat-num">03</div>
+        <div class="why-feat-title">Confidence &amp; Competence</div>
+        <p class="why-feat-body">Walk into your Type Rating technically sharp and cockpit-ready — not just knowing the theory, but truly owning it from day one.</p>
+      </div>
+      <div class="why-feature">
+        <div class="why-feat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+        </div>
+        <div class="why-feat-num">04</div>
+        <div class="why-feat-title">Career Guidance</div>
+        <p class="why-feat-body">One-on-one mentorship beyond the classroom — from choosing your flight school to planning your Type Rating and airline prep, get clarity and direction at every step of your journey.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- INSTRUCTOR -->
+<section id="instructor">
+  <div class="instr-inner">
+    <div class="section-head">
+      <p class="sec-kicker">Your Instructor</p>
+      <h2 class="sec-title">Meet <em>Capt. Jay</em></h2>
+      <div class="sec-divider"></div>
+    </div>
+    <div class="instr-wrap">
+      <div class="instr-photo-col">
+        <div class="instr-gold-bar"></div>
+        <picture>
+          <source srcset="assets/jay.webp" type="image/webp"/>
+          <img src="assets/jay.jpeg" alt="Capt. Jay Kotecha — A320 Type Rated instructor and founder" width="1200" height="1600" loading="lazy" decoding="async"/>
+        </picture>
+        <div class="instr-photo-badge">
+          <div class="instr-badge-name">CAPT. JAY KOTECHA</div>
+          <div class="instr-badge-role">A320 Type Rated · Founder</div>
+        </div>
+      </div>
+      <div class="instr-body">
+        <div class="instr-name">
+          <span class="instr-n1">Capt. Jay</span>
+          <span class="instr-n2">Kotecha</span>
+        </div>
+        <div class="instr-role">Commercial Pilot &nbsp;·&nbsp; A320 Type Rated &nbsp;·&nbsp; Founder, Open Climb Aviation Academy</div>
+        <div class="instr-divider"></div>
+        <p class="instr-bio">Commercial pilot trained at one of India's premier aviation institutes, with a strong specialization in A320 systems and procedures. With an exceptional grasp of A320 FCOM concepts and airline-standard workflows, I mentor aspiring pilots through focused, practical, and high-standard Pre-TR training designed to bridge the gap between flight school and the airline environment while building confidence, technical clarity, and cockpit readiness. With over 5 years in the aviation industry — including having lived the cadet journey myself — I understand firsthand the challenges, doubts, and pressure that come with this path. That experience is exactly why I'm committed to making your journey smoother, clearer, and far less overwhelming than mine was.</p>
+        <div class="instr-creds">
+          <div class="cred"><div class="cred-dot"></div><span class="cred-text">Commercial Pilot License</span></div>
+          <div class="cred"><div class="cred-dot"></div><span class="cred-text">A320 Type Rated</span></div>
+          <div class="cred"><div class="cred-dot"></div><span class="cred-text">Pre-TR Training</span></div>
+          <div class="cred"><div class="cred-dot"></div><span class="cred-text">Founder, Open Climb Aviation Academy</span></div>
+        </div>
+        <div class="instr-btns">
+          <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27d%20like%20to%20book%20a%20free%20A320%20Pre-TR%20demo%20class." target="_blank" class="btn btn-gold" onclick="track('cta_book_demo_click',{location:'instructor'})">Book Free Demo →</a>
+          <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27m%20interested%20in%20the%20Open%20Climb%20Aviation%20A320%20Pre-TR%20program." target="_blank" class="btn btn-outline" onclick="track('whatsapp_click',{location:'instructor'})">WhatsApp</a>
+          <a href="https://instagram.com/jaykotecha_klm" target="_blank" class="btn btn-ink">Instagram</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- COURSES -->
+<section id="courses">
+  <div class="courses-inner">
+    <div class="section-head">
+      <p class="sec-kicker">Training Programs</p>
+      <h2 class="sec-title">Our <em>Courses</em></h2>
+      <div class="sec-divider"></div>
+      <p class="sec-sub">Industry-leading A320 training designed for aspiring airline pilots.</p>
+    </div>
+    <div class="urgency-banner">Next A320 batch starts <strong>[JAY: date]</strong> · limited seats</div>
+    <div class="courses-grid" id="coursesGrid">
+      <p style="color:var(--muted);font-weight:300;">Loading courses…</p>
+    </div>
+    <div class="demo-banner">
+      <div>
+        <div class="demo-banner-tag">Free Demo Available</div>
+        <div class="demo-banner-title">Start with a free demo — pay only if it's the right fit.</div>
+      </div>
+      <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27d%20like%20to%20book%20a%20free%20A320%20Pre-TR%20demo%20class." target="_blank" class="btn btn-gold" onclick="track('cta_book_demo_click',{location:'courses'})">Book Free Demo →</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="tst-inner">
+    <div class="section-head">
+      <p class="sec-kicker">Testimonials</p>
+      <h2 class="sec-title">What Our <em>Students Say.</em></h2>
+      <div class="sec-divider"></div>
+      <p class="sec-sub">Hear from pilots who prepared with Open Climb Aviation Academy. Each card shows the student's outcome — the airline / TRTO they went on to.</p>
+    </div>
+    <div class="tst-grid">
+      <figure class="tst-card">
+        <div class="tst-quote-mark">“</div>
+        <blockquote class="tst-quote">I would like to thank Capt. Jay for conducting an excellent A320 Pre-Type Rating course, covering all major aircraft systems and operational flows in a clear, structured, and easy-to-understand manner. Learning the systems through Aerofly FS made it much easier to understand what's actually happening in the cockpit. I now feel much more confident and ready to begin TR — highly recommend this course to anyone preparing for their A320 Type Rating.</blockquote>
+        <figcaption class="tst-author">
+          <picture>
+            <source srcset="assets/testimonial-vatsal.webp" type="image/webp"/>
+            <img class="tst-photo" src="assets/testimonial-vatsal.jpeg" alt="Vatsal Gajera" width="150" height="150" loading="lazy" decoding="async"/>
+          </picture>
+          <div>
+            <div class="tst-name">Vatsal Gajera</div>
+            <div class="tst-cred">✅ A320 TR from CAE, Malaysia</div>
+          </div>
+        </figcaption>
+      </figure>
+      <figure class="tst-card">
+        <div class="tst-quote-mark">“</div>
+        <blockquote class="tst-quote">Jay has a remarkable ability to simplify complex topics. Transitioning from piston aircraft to jets, I found his explanations clear, practical, and easy to retain — his real-world examples and approachable teaching style make learning both effective and enjoyable. I'd highly recommend him to anyone preparing for their type rating.</blockquote>
+        <figcaption class="tst-author">
+          <picture>
+            <source srcset="assets/testimonial-lochini.webp" type="image/webp"/>
+            <img class="tst-photo" src="assets/testimonial-lochini.jpeg" alt="Lochini" width="150" height="150" loading="lazy" decoding="async"/>
+          </picture>
+          <div>
+            <div class="tst-name">Lochini</div>
+            <div class="tst-cred">✅ A320 TR from CAE, Malaysia</div>
+          </div>
+        </figcaption>
+      </figure>
+
+      <!-- ADD MORE TESTIMONIALS (aim for 6–10). Duplicate a card below and fill it in.
+           Each should have an outcome line (airline / TRTO / cleared TR). -->
+      <figure class="tst-card">
+        <div class="tst-quote-mark">“</div>
+        <blockquote class="tst-quote">[JAY: testimonial #3 quote]</blockquote>
+        <figcaption class="tst-author">
+          <!-- Optional photo: drop a file in /assets and point src at it. No silent
+               hide — a broken image will show so you notice and fix it. -->
+          <img class="tst-photo" src="assets/testimonial-3.jpg" alt="[JAY: student name]" width="150" height="150" loading="lazy" decoding="async"/>
+          <div>
+            <div class="tst-name">[JAY: student name]</div>
+            <div class="tst-cred">✅ [JAY: outcome — airline / TRTO / cleared A320 TR]</div>
+          </div>
+        </figcaption>
+      </figure>
+      <figure class="tst-card">
+        <div class="tst-quote-mark">“</div>
+        <blockquote class="tst-quote">[JAY: testimonial #4 quote]</blockquote>
+        <figcaption class="tst-author">
+          <img class="tst-photo" src="assets/testimonial-4.jpg" alt="[JAY: student name]" width="150" height="150" loading="lazy" decoding="async"/>
+          <div>
+            <div class="tst-name">[JAY: student name]</div>
+            <div class="tst-cred">✅ [JAY: outcome — airline / TRTO / cleared A320 TR]</div>
+          </div>
+        </figcaption>
+      </figure>
+
+      <!-- WhatsApp-screenshot style card — paste a chat screenshot into /assets and
+           point src at it. Sized so it never causes layout shift. -->
+      <figure class="tst-card">
+        <img src="assets/testimonial-whatsapp-1.jpg" alt="[JAY: WhatsApp testimonial screenshot]"
+             width="600" height="800" loading="lazy" decoding="async"
+             style="width:100%;height:auto;border-radius:var(--radius);border:1px solid var(--line);"/>
+        <figcaption class="tst-author" style="border-top:none;padding-top:0;">
+          <div>
+            <div class="tst-name">[JAY: student name]</div>
+            <div class="tst-cred">✅ [JAY: outcome — airline / TRTO / cleared A320 TR]</div>
+          </div>
+        </figcaption>
+      </figure>
+    </div>
+
+    <div style="text-align:center;margin-top:48px;">
+      <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27d%20like%20to%20book%20a%20free%20A320%20Pre-TR%20demo%20class." target="_blank" class="btn btn-gold" onclick="track('cta_book_demo_click',{location:'testimonials'})">Book Free Demo →</a>
+      <div class="risk-line">Start with a free demo — pay only if it's the right fit.</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="faq-inner">
+    <div class="section-head">
+      <p class="sec-kicker">FAQ</p>
+      <h2 class="sec-title">Questions, <em>Answered.</em></h2>
+      <div class="sec-divider"></div>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item">
+        <summary class="faq-q">Is the training online or in-person?</summary>
+        <div class="faq-a">[JAY: answer — e.g. 100% online, live 1:1/small-group interactive sessions over video; how screen-share / sim software is used]</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Does it match my airline / TRTO's Type Rating syllabus?</summary>
+        <div class="faq-a">[JAY: answer — how the content maps to A320 TR ground school & FCOM; airlines/TRTOs students have gone on to]</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Why not just self-study the FCOM?</summary>
+        <div class="faq-a">[JAY: answer — what structured, instructor-led FCOM-grounded prep adds over reading the FCOM alone]</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">I'm a slow learner / nervous about jets. Can I keep up?</summary>
+        <div class="faq-a">[JAY: answer — pacing, revisiting topics, 1:1 support, how you help cadets transitioning from pistons]</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Can I try before I pay?</summary>
+        <div class="faq-a">[JAY: answer — yes, free demo class; what it covers; how to book]. Start with a free demo — pay only if it's the right fit.</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">What are the payment and refund terms?</summary>
+        <div class="faq-a">[JAY: answer — accepted payment methods (UPI etc.), instalments if any, and your refund / cancellation policy]</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">Who is this for — what are the prerequisites?</summary>
+        <div class="faq-a">[JAY: answer — e.g. CPL holders who've signed for an A320 TR; any prior knowledge assumed]</div>
+      </details>
+      <details class="faq-item">
+        <summary class="faq-q">How are sessions scheduled, and what about time zones?</summary>
+        <div class="faq-a">[JAY: answer — scheduling flexibility, typical hours, handling students outside India]</div>
+      </details>
+    </div>
+    <div style="text-align:center;margin-top:44px;">
+      <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27d%20like%20to%20book%20a%20free%20A320%20Pre-TR%20demo%20class." target="_blank" class="btn btn-gold" onclick="track('cta_book_demo_click',{location:'faq'})">Book Free Demo →</a>
+      <div class="risk-line">Start with a free demo — pay only if it's the right fit.</div>
+    </div>
+  </div>
+</section>
 
 
 <!-- CAREER GUIDANCE -->
@@ -988,159 +1448,10 @@
     <div class="career-outro">
       <p class="career-tagline">✈️ Dream. Plan. Fly. We'll show you the way.</p>
       <p class="career-cta-text">Book your Career Counselling Session today and take the first step towards your aviation dream. ✈️</p>
-      <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27m%20interested%20in%20the%20Open%20Climb%20Aviation%20A320%20Pre-TR%20program." target="_blank" class="btn btn-gold">
+      <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27d%20like%20to%20book%20a%20Career%20Counselling%20Session." target="_blank" class="btn btn-outline" onclick="track('whatsapp_click',{location:'career'})">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.556 4.126 1.523 5.855L0 24l6.313-1.497A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.876 9.876 0 01-5.031-1.375l-.36-.214-3.742.887.903-3.648-.235-.374A9.867 9.867 0 012.118 12C2.118 6.527 6.527 2.118 12 2.118S21.882 6.527 21.882 12 17.473 21.882 12 21.882z"/></svg>
         Book Career Counselling Session
       </a>
-    </div>
-  </div>
-</section>
-
-
-<!-- COURSES -->
-<section id="courses">
-  <div class="courses-inner">
-    <div class="section-head">
-      <p class="sec-kicker">Training Programs</p>
-      <h2 class="sec-title">Our <em>Courses</em></h2>
-      <div class="sec-divider"></div>
-      <p class="sec-sub">Industry-leading A320 training designed for aspiring airline pilots.</p>
-    </div>
-    <div class="courses-grid" id="coursesGrid">
-      <p style="color:var(--muted);font-weight:300;">Loading courses…</p>
-    </div>
-    <div class="demo-banner">
-      <div>
-        <div class="demo-banner-tag">Free Demo Available</div>
-        <div class="demo-banner-title">Try a session before you commit — no obligation.</div>
-      </div>
-      <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27m%20interested%20in%20the%20Open%20Climb%20Aviation%20A320%20Pre-TR%20program." target="_blank" class="btn btn-gold">Book Free Demo →</a>
-    </div>
-  </div>
-</section>
-
-
-<!-- INSTRUCTOR -->
-<section id="instructor">
-  <div class="instr-inner">
-    <div class="section-head">
-      <p class="sec-kicker">Your Instructor</p>
-      <h2 class="sec-title">Meet <em>Capt. Jay</em></h2>
-      <div class="sec-divider"></div>
-    </div>
-    <div class="instr-wrap">
-      <div class="instr-photo-col">
-        <div class="instr-gold-bar"></div>
-        <img src="assets/jay.jpeg" alt="Capt. Jay Kotecha" onerror="this.style.display='none'"/>
-        <div class="instr-photo-badge">
-          <div class="instr-badge-name">CAPT. JAY KOTECHA</div>
-          <div class="instr-badge-role">A320 Type Rated · Founder</div>
-        </div>
-      </div>
-      <div class="instr-body">
-        <div class="instr-name">
-          <span class="instr-n1">Capt. Jay</span>
-          <span class="instr-n2">Kotecha</span>
-        </div>
-        <div class="instr-role">Commercial Pilot &nbsp;·&nbsp; A320 Type Rated &nbsp;·&nbsp; Founder, Open Climb Aviation Academy</div>
-        <div class="instr-divider"></div>
-        <p class="instr-bio">Commercial pilot trained at one of India's premier aviation institutes, with a strong specialization in A320 systems and procedures. With an exceptional grasp of A320 FCOM concepts and airline-standard workflows, I mentor aspiring pilots through focused, practical, and high-standard Pre-TR training designed to bridge the gap between flight school and the airline environment while building confidence, technical clarity, and cockpit readiness. With over 5 years in the aviation industry — including having lived the cadet journey myself — I understand firsthand the challenges, doubts, and pressure that come with this path. That experience is exactly why I'm committed to making your journey smoother, clearer, and far less overwhelming than mine was.</p>
-        <div class="instr-creds">
-          <div class="cred"><div class="cred-dot"></div><span class="cred-text">Commercial Pilot License</span></div>
-          <div class="cred"><div class="cred-dot"></div><span class="cred-text">A320 Type Rated</span></div>
-          <div class="cred"><div class="cred-dot"></div><span class="cred-text">Pre-TR Training</span></div>
-          <div class="cred"><div class="cred-dot"></div><span class="cred-text">Founder, Open Climb Aviation Academy</span></div>
-        </div>
-        <div class="instr-btns">
-          <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27m%20interested%20in%20the%20Open%20Climb%20Aviation%20A320%20Pre-TR%20program." target="_blank" class="btn btn-gold">DM to Enroll →</a>
-          <a href="mailto:training.ocaa@gmail.com" class="btn btn-outline">Email Jay</a>
-          <a href="https://instagram.com/jaykotecha_klm" target="_blank" class="btn btn-ink">Instagram</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- WHY US -->
-<section id="why-us">
-  <div class="why-inner">
-    <div class="section-head">
-      <p class="sec-kicker">Why Open Climb</p>
-      <h2 class="sec-title">Training That <em>Matters.</em></h2>
-      <div class="sec-divider"></div>
-      <p class="sec-sub">Premium, focused, and built by pilots for pilots preparing for A320 line flying.</p>
-    </div>
-    <div class="why-features">
-      <div class="why-feature">
-        <div class="why-feat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
-        </div>
-        <div class="why-feat-num">01</div>
-        <div class="why-feat-title">A320 Focused</div>
-        <p class="why-feat-body">Every module built around the Airbus A320 family. No generic content — only what you need to walk into your TR confident and fully prepared.</p>
-      </div>
-      <div class="why-feature">
-        <div class="why-feat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>
-        </div>
-        <div class="why-feat-num">02</div>
-        <div class="why-feat-title">Practical &amp; Relevant</div>
-        <p class="why-feat-body">FCOM-driven teaching with airline-standard flows, scan patterns and MCDU procedures. Every session mirrors your sim day — 100% TR oriented.</p>
-      </div>
-      <div class="why-feature">
-        <div class="why-feat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        </div>
-        <div class="why-feat-num">03</div>
-        <div class="why-feat-title">Confidence &amp; Competence</div>
-        <p class="why-feat-body">Walk into your Type Rating technically sharp and cockpit-ready — not just knowing the theory, but truly owning it from day one.</p>
-      </div>
-      <div class="why-feature">
-        <div class="why-feat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
-        </div>
-        <div class="why-feat-num">04</div>
-        <div class="why-feat-title">Career Guidance</div>
-        <p class="why-feat-body">One-on-one mentorship beyond the classroom — from choosing your flight school to planning your Type Rating and airline prep, get clarity and direction at every step of your journey.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- TESTIMONIALS -->
-<section id="testimonials">
-  <div class="tst-inner">
-    <div class="section-head">
-      <p class="sec-kicker">Testimonials</p>
-      <h2 class="sec-title">What Our <em>Students Say.</em></h2>
-      <div class="sec-divider"></div>
-      <p class="sec-sub">Hear from pilots who prepared with Open Climb Aviation Academy.</p>
-    </div>
-    <div class="tst-grid">
-      <figure class="tst-card">
-        <div class="tst-quote-mark">“</div>
-        <blockquote class="tst-quote">I would like to thank Capt. Jay for conducting an excellent A320 Pre-Type Rating course, covering all major aircraft systems and operational flows in a clear, structured, and easy-to-understand manner. Learning the systems through Aerofly FS made it much easier to understand what's actually happening in the cockpit. I now feel much more confident and ready to begin TR — highly recommend this course to anyone preparing for their A320 Type Rating.</blockquote>
-        <figcaption class="tst-author">
-          <img class="tst-photo" src="assets/testimonial-vatsal.jpeg" alt="Vatsal Gajera" onerror="this.style.display='none'"/>
-          <div>
-            <div class="tst-name">Vatsal Gajera</div>
-            <div class="tst-cred">A320 TR from CAE, Malaysia</div>
-          </div>
-        </figcaption>
-      </figure>
-      <figure class="tst-card">
-        <div class="tst-quote-mark">“</div>
-        <blockquote class="tst-quote">Jay has a remarkable ability to simplify complex topics. Transitioning from piston aircraft to jets, I found his explanations clear, practical, and easy to retain — his real-world examples and approachable teaching style make learning both effective and enjoyable. I'd highly recommend him to anyone preparing for their type rating.</blockquote>
-        <figcaption class="tst-author">
-          <img class="tst-photo" src="assets/testimonial-lochini.jpeg" alt="Lochini" onerror="this.style.display='none'"/>
-          <div>
-            <div class="tst-name">Lochini</div>
-            <div class="tst-cred">A320 TR from CAE, Malaysia</div>
-          </div>
-        </figcaption>
-      </figure>
     </div>
   </div>
 </section>
@@ -1166,7 +1477,7 @@
             <div class="contact-link-icon">✉️</div>
             <div><div class="contact-link-label">Email</div><div class="contact-link-val">training.ocaa@gmail.com</div></div>
           </a>
-          <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27m%20interested%20in%20the%20Open%20Climb%20Aviation%20A320%20Pre-TR%20program." target="_blank" class="contact-link">
+          <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27m%20interested%20in%20the%20Open%20Climb%20Aviation%20A320%20Pre-TR%20program." target="_blank" class="contact-link" onclick="track('whatsapp_click',{location:'contact'})">
             <div class="contact-link-icon">📱</div>
             <div><div class="contact-link-label">WhatsApp</div><div class="contact-link-val">DM to Enroll</div></div>
           </a>
@@ -1211,7 +1522,7 @@
     <div class="footer-top">
       <div>
         <div class="footer-brand-row">
-          <img src="assets/logo.jpeg" class="footer-logo-img" alt="Open Climb Aviation" onerror="this.style.display='none'"/>
+          <img src="assets/logo.webp" class="footer-logo-img" alt="Open Climb Aviation" width="56" height="56" loading="lazy" onerror="this.style.display='none'"/>
           <div class="footer-brand-text">
             <div class="footer-logo-name">Open Climb Aviation Academy</div>
             <div class="footer-logo-sub">A320 Pre-Type Rating</div>
@@ -1246,8 +1557,16 @@
 </footer>
 
 
+<!-- STICKY MOBILE CTA BAR (mobile only) -->
+<div class="sticky-cta">
+  <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27d%20like%20to%20book%20a%20free%20A320%20Pre-TR%20demo%20class." target="_blank" class="btn btn-gold" onclick="track('cta_book_demo_click',{location:'sticky'})">Book Free Demo</a>
+  <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27m%20interested%20in%20the%20Open%20Climb%20Aviation%20A320%20Pre-TR%20program." target="_blank" class="sticky-cta-wa" aria-label="Chat on WhatsApp" onclick="track('whatsapp_click',{location:'sticky'})">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.556 4.126 1.523 5.855L0 24l6.313-1.497A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.876 9.876 0 01-5.031-1.375l-.36-.214-3.742.887.903-3.648-.235-.374A9.867 9.867 0 012.118 12C2.118 6.527 6.527 2.118 12 2.118S21.882 6.527 21.882 12 17.473 21.882 12 21.882z"/></svg>
+  </a>
+</div>
+
 <!-- WhatsApp Float -->
-<a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27m%20interested%20in%20the%20Open%20Climb%20Aviation%20A320%20Pre-TR%20program." target="_blank" class="wa-float" title="Chat on WhatsApp">
+<a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27m%20interested%20in%20the%20Open%20Climb%20Aviation%20A320%20Pre-TR%20program." target="_blank" class="wa-float" title="Chat on WhatsApp" onclick="track('whatsapp_click',{location:'float'})">
   <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.556 4.126 1.523 5.855L0 24l6.313-1.497A11.934 11.934 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.876 9.876 0 01-5.031-1.375l-.36-.214-3.742.887.903-3.648-.235-.374A9.867 9.867 0 012.118 12C2.118 6.527 6.527 2.118 12 2.118S21.882 6.527 21.882 12 17.473 21.882 12 21.882z"/></svg>
 </a>
 
@@ -1616,7 +1935,7 @@ function renderStaticCourses(grid) {
           ${c.features.map(f => `<li>${checkSVG}${f}</li>`).join('')}
         </ul>
         <div class="course-cta">
-          <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27m%20interested%20in%20the%20Open%20Climb%20Aviation%20A320%20Pre-TR%20program." target="_blank" class="btn btn-gold" style="width:100%;display:flex;">Enroll via WhatsApp →</a>
+          <a href="https://wa.me/919479959933?text=Hi%20Capt.%20Jay!%20I%27m%20interested%20in%20the%20Open%20Climb%20Aviation%20A320%20Pre-TR%20program." target="_blank" class="btn btn-gold" style="width:100%;display:flex;" onclick="track('whatsapp_click',{location:'course-card'})">Enroll via WhatsApp →</a>
         </div>
       </div>
     </div>`).join('');
@@ -1624,6 +1943,7 @@ function renderStaticCourses(grid) {
 
 /* ── Enrollment — UPI is the primary payment method ── */
 async function enrollCourse(courseId, courseName, btn) {
+  track('enroll_click', { course_id: courseId, course: courseName });
   if (!getToken()) { sessionStorage.setItem('pendingCourse', courseId); openAuthModal('register'); return; }
   const orig = btn.textContent;
   btn.disabled = true; btn.textContent = 'Processing…';
@@ -1877,6 +2197,7 @@ document.getElementById('enquiryForm').addEventListener('submit', function(e) {
     return;
   }
   msg.className = 'form-msg'; msg.textContent = '';
+  track('enquiry_submit', { course: (document.getElementById('eqCourse') || {}).value || '' });
   const btn = e.target.querySelector('button[type="submit"]');
   btn.disabled = true; btn.textContent = 'Sending…';
   setTimeout(() => { btn.disabled = false; btn.textContent = 'Submit Enquiry →'; }, 4000);
