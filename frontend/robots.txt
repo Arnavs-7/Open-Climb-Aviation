@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Private / app pages — keep out of search results
+Disallow: /admin.html
+Disallow: /dashboard.html
+Disallow: /reset-password.html
+
+Sitemap: https://openclimbaviationacademy.com/sitemap.xml
