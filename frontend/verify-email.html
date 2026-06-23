@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>Verify Email | Open Climb Aviation</title>
+  <meta name="description" content="Verify your Open Climb Aviation account email address."/>
+  <link rel="icon" href="assets/logo.jpeg" type="image/jpeg"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+
+  <style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --white:   #FFFFFF;
+    --cream:   #FAFAF6;
+    --ink:     #1A1610;
+    --ink-2:   #0d1b2a;
+    --muted:   #7A6E5A;
+    --subtle:  #A89880;
+    --gold:    #B8892A;
+    --gold-dk: #9A7220;
+    --gold-glow: rgba(184,137,42,0.35);
+    --line:    rgba(26,22,16,0.10);
+    --line-md: rgba(26,22,16,0.15);
+    --radius:  4px;
+    --radius-lg: 12px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: radial-gradient(circle at 20% 20%, rgba(184,137,42,0.08), transparent 55%),
+                radial-gradient(circle at 80% 80%, rgba(13,27,42,0.06), transparent 55%),
+                var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 440px;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 24px 60px rgba(26,22,16,0.10);
+    overflow: hidden;
+  }
+
+  .card-head {
+    background: var(--ink-2);
+    padding: 34px 36px 28px;
+    text-align: center;
+  }
+  .card-head .brand {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.6rem;
+    color: var(--gold);
+    letter-spacing: 0.5px;
+  }
+  .card-head .sub {
+    margin-top: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+  }
+
+  .card-body { padding: 34px 36px 38px; }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .lead { font-size: 0.9rem; color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+
+  .fgroup { margin-bottom: 16px; text-align: left; }
+  .fgroup label {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--subtle);
+    margin-bottom: 7px;
+  }
+  .fgroup input {
+    width: 100%;
+    padding: 13px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    color: var(--ink);
+    background: var(--cream);
+    border: 1px solid var(--line-md);
+    border-radius: var(--radius);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .fgroup input::placeholder { color: var(--subtle); }
+  .fgroup input:focus { outline: none; border-color: var(--gold); background: #fff; }
+
+  .btn-gold {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 100%;
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+    padding: 14px 30px; border-radius: var(--radius);
+    background: var(--gold); color: #fff; border: none; cursor: pointer;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    transition: all 0.22s ease;
+    margin-top: 6px;
+    text-decoration: none;
+  }
+  .btn-gold:hover { background: var(--gold-dk); box-shadow: 0 6px 24px var(--gold-glow); transform: translateY(-2px); }
+  .btn-gold:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .msg { font-size: 0.84rem; margin-top: 14px; min-height: 18px; line-height: 1.5; }
+  .msg.err { color: #C0392B; }
+  .msg.ok  { color: #1E8449; }
+
+  .center { text-align: center; }
+  .icon { font-size: 2.6rem; margin-bottom: 12px; }
+  .spinner {
+    width: 38px; height: 38px; margin: 4px auto 18px;
+    border: 3px solid var(--line-md); border-top-color: var(--gold);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .link { color: var(--gold); font-weight: 600; text-decoration: none; }
+  .link:hover { text-decoration: underline; }
+  .backlink { display: inline-block; margin-top: 20px; font-size: 0.85rem; }
+
+  .hidden { display: none; }
+
+  @media (max-width: 480px) {
+    .card-head { padding: 28px 24px 22px; }
+    .card-body { padding: 28px 24px 32px; }
+  }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="card-head">
+      <div class="brand">Open Climb Aviation</div>
+      <div class="sub">A320 Pre-Type Rating Training</div>
+    </div>
+    <div class="card-body">
+
+      <!-- Loading (default) -->
+      <div id="loadingView" class="center">
+        <div class="spinner"></div>
+        <h1>Verifying your email…</h1>
+        <p class="lead">Just a moment while we confirm your address.</p>
+      </div>
+
+      <!-- Success view -->
+      <div id="successView" class="hidden center">
+        <div class="icon">✅</div>
+        <h1>Email verified</h1>
+        <p class="lead">Your email address has been confirmed — you can now enrol in our A320 Pre-TR programmes.</p>
+        <a class="btn-gold" href="dashboard.html">GO TO DASHBOARD →</a>
+        <a class="backlink link" href="index.html">← Back to home</a>
+      </div>
+
+      <!-- Invalid / expired token view (with resend option) -->
+      <div id="invalidView" class="hidden center">
+        <div class="icon">⚠️</div>
+        <h1>Link expired or invalid</h1>
+        <p class="lead" id="invalidMsg">This verification link is invalid or has expired. Verification links are valid for 24 hours. Enter your email below and we'll send a fresh one.</p>
+        <div class="fgroup">
+          <label>Email Address</label>
+          <input type="email" id="resendEmail" placeholder="you@example.com" onkeydown="if(event.key==='Enter')resend()"/>
+        </div>
+        <button class="btn-gold" id="resendBtn" onclick="resend()">RESEND VERIFICATION EMAIL</button>
+        <div class="msg" id="resendMsg"></div>
+        <a class="backlink link" href="index.html">← Back to home</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+  /* ── API config — mirrors index.html ── */
+  const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+    ? 'http://localhost:5000/api'
+    : 'https://openclimb-api.onrender.com/api';
+
+  function getParam(name) {
+    return new URLSearchParams(location.search).get(name);
+  }
+  function show(viewId) {
+    ['loadingView', 'successView', 'invalidView'].forEach(id => {
+      document.getElementById(id).classList.toggle('hidden', id !== viewId);
+    });
+  }
+
+  const token = getParam('token');
+
+  async function verify() {
+    // No token at all → straight to the invalid/resend view.
+    if (!token) { show('invalidView'); return; }
+
+    try {
+      const res = await fetch(API_BASE + '/auth/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      const json = await res.json();
+      if (json.success) {
+        show('successView');
+      } else {
+        const m = (json.errors && json.errors[0] && json.errors[0].message) || json.message || '';
+        if (m) document.getElementById('invalidMsg').textContent = m + " Enter your email below and we'll send a fresh one.";
+        show('invalidView');
+      }
+    } catch {
+      document.getElementById('invalidMsg').textContent = "We couldn't reach the server. Enter your email below and we'll send a fresh verification link.";
+      show('invalidView');
+    }
+  }
+
+  async function resend() {
+    const msgEl = document.getElementById('resendMsg');
+    msgEl.className = 'msg'; msgEl.textContent = '';
+    const email = document.getElementById('resendEmail').value.trim();
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      msgEl.className = 'msg err'; msgEl.textContent = 'Please enter a valid email address.'; return;
+    }
+
+    const btn = document.getElementById('resendBtn');
+    btn.disabled = true;
+    try {
+      const res = await fetch(API_BASE + '/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const json = await res.json();
+      // Response is intentionally generic — always treat as success for the user.
+      msgEl.className = 'msg ok';
+      msgEl.textContent = json.message || 'If your account needs verification, a new link has been sent to your email.';
+    } catch {
+      msgEl.className = 'msg err';
+      msgEl.textContent = 'Network error. Please try again.';
+      btn.disabled = false;
+    }
+  }
+
+  verify();
+  </script>
+</body>
+</html>

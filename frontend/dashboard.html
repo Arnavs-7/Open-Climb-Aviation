@@ -741,6 +741,19 @@
   </div>
 </nav>
 
+<!-- ══════════════════════════════════════════
+     EMAIL VERIFICATION BANNER (shown only when unverified)
+══════════════════════════════════════════ -->
+<div id="verifyBanner" style="display:none;background:#FFF4DA;border-bottom:1px solid rgba(184,137,42,0.35);color:#5a4a1f;padding:13px 24px;font-family:'DM Sans',sans-serif;font-size:0.9rem;">
+  <div style="max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:center;">
+    <span>✉️ <strong>Please verify your email to enrol.</strong> Check your inbox for the verification link.</span>
+    <button id="resendVerifyBtn" onclick="resendVerification()"
+      style="background:#B8892A;color:#fff;border:none;border-radius:4px;padding:8px 18px;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">
+      Resend verification email
+    </button>
+  </div>
+</div>
+
 
 <!-- ══════════════════════════════════════════
      HERO
@@ -1257,10 +1270,45 @@ function countUp(el, target, suffix, ms) {
 })();
 
 /* ═══════════════════════════════════
+   EMAIL VERIFICATION
+═══════════════════════════════════ */
+// Pull the fresh user from the server (the cached localStorage copy may predate
+// this feature and lack email_verified). Show the banner if still unverified.
+async function checkEmailVerified() {
+  try {
+    const json = await apiCall('/auth/me');
+    const u = json.data?.user;
+    if (!u) return;
+    // Keep the cached user in sync so other views see the latest flag.
+    localStorage.setItem('oca_user', JSON.stringify(u));
+    document.getElementById('verifyBanner').style.display = u.email_verified ? 'none' : 'block';
+  } catch { /* never break the dashboard over this */ }
+}
+
+async function resendVerification() {
+  const btn = document.getElementById('resendVerifyBtn');
+  const email = getUser().email;
+  if (!email) { toast('Could not find your email. Please log in again.', 'err'); return; }
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = 'Sending…';
+  try {
+    const json = await apiCall('/auth/resend-verification', 'POST', { email });
+    toast(json.message || 'Verification email sent. Please check your inbox.', 'ok');
+    btn.textContent = 'Email sent ✓';
+  } catch {
+    toast('Network error. Please try again.', 'err');
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+}
+
+/* ═══════════════════════════════════
    INIT
 ═══════════════════════════════════ */
 populateUser();
 loadMyCourses();
+checkEmailVerified();
 
 setTimeout(() => {
   document.querySelectorAll('.hero .reveal, .poster-band .reveal').forEach(el => el.classList.add('in'));

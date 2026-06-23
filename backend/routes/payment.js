@@ -104,6 +104,15 @@ function fmtInr(paise) {
   return `₹${(paise / 100).toLocaleString('en-IN')}`;
 }
 
+// Gate enrolment/payment behind a verified email. Runs after verifyToken, which
+// loads req.user (including email_verified) from the DB.
+function requireVerified(req, res, next) {
+  if (!req.user?.email_verified) {
+    return fail(res, 'Please verify your email first. Check your inbox for the verification link (or resend it from your dashboard).', [], 403);
+  }
+  next();
+}
+
 // ── Email templates ───────────────────────────────────────────────────────────
 function studentConfirmationHtml({ studentName, courseName, amount, paymentId, whatsapp }) {
   return `
@@ -315,7 +324,7 @@ function adminUpiClaimHtml({ studentName, studentEmail, studentWhatsapp, courseN
 }
 
 // ── POST /api/payment/create-order ────────────────────────────────────────────
-router.post('/create-order', verifyToken, async (req, res) => {
+router.post('/create-order', verifyToken, requireVerified, async (req, res) => {
   if (!razorpay) return razorpayDisabled(res);
 
   const { course_id } = req.body;
@@ -532,7 +541,7 @@ router.get('/my-enrollments', verifyToken, async (req, res) => {
 // ── POST /api/payment/upi-init ────────────────────────────────────────────────
 // Primary payment method. Creates/reuses a pending enrollment and returns the
 // details the browser needs to render the UPI QR code and pay-to box.
-router.post('/upi-init', verifyToken, async (req, res) => {
+router.post('/upi-init', verifyToken, requireVerified, async (req, res) => {
   const { course_id, coupon } = req.body;
   if (!course_id) return fail(res, 'course_id is required');
 

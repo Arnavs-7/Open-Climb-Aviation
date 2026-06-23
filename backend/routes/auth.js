@@ -62,7 +62,10 @@ function handleValidation(req, res) {
 }
 
 // ── Email templates ───────────────────────────────────────────────────────────
-function welcomeEmailHtml(name) {
+// Sent on signup — this is the key onboarding email: it welcomes the new student
+// AND asks them to verify their email (we deliberately don't send a separate
+// "welcome" email too, to avoid confusing duplicates).
+function verificationEmailHtml(name, verifyUrl) {
   return `
 <!DOCTYPE html>
 <html>
@@ -88,42 +91,28 @@ function welcomeEmailHtml(name) {
           <td style="background:#ffffff;padding:40px;">
             <h2 style="color:#0d1b2a;margin:0 0 16px;">Welcome aboard, ${name}! ✈️</h2>
             <p style="color:#555;line-height:1.8;margin:0 0 20px;">
-              We're thrilled to have you join <strong>Open Climb Aviation</strong>. Your journey to mastering the A320 starts here.
-            </p>
-            <p style="color:#555;line-height:1.8;margin:0 0 28px;">
-              Capt. Jay Kotecha and the team are here to help you walk into your Type Rating simulator sessions fully prepared — confident on systems, flows, abnormals, and MCDU programming.
+              We're thrilled to have you join <strong>Open Climb Aviation</strong>. One quick step before you can enrol:
+              please confirm your email address by clicking the button below.
             </p>
 
             <!-- CTA -->
-            <table cellpadding="0" cellspacing="0" style="margin:0 0 28px;">
+            <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
               <tr>
                 <td style="background:#f5a623;border-radius:8px;padding:14px 32px;">
-                  <a href="${process.env.FRONTEND_URL || '#'}" style="color:#0d1b2a;font-weight:700;font-size:15px;text-decoration:none;">Browse Courses →</a>
+                  <a href="${verifyUrl}" style="color:#0d1b2a;font-weight:700;font-size:15px;text-decoration:none;">Verify My Email →</a>
                 </td>
               </tr>
             </table>
 
-            <!-- Courses preview -->
-            <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #eef;border-radius:10px;overflow:hidden;margin-bottom:28px;">
-              <tr style="background:#f4f7fb;">
-                <td style="padding:16px 20px;border-bottom:1px solid #eef;">
-                  <strong style="color:#0d1b2a;font-size:14px;">A320 Systems</strong>
-                  <span style="float:right;color:#2196f3;font-weight:700;">₹25,000</span>
-                  <p style="margin:4px 0 0;color:#888;font-size:13px;">Complete systems deep-dive · 20 days</p>
-                </td>
-              </tr>
-              <tr style="background:#fff;">
-                <td style="padding:16px 20px;">
-                  <strong style="color:#0d1b2a;font-size:14px;">Flows &amp; Procedures incl. MCDU</strong>
-                  <span style="float:right;color:#2196f3;font-weight:700;">₹10,000</span>
-                  <p style="margin:4px 0 0;color:#888;font-size:13px;">Flows, abnormals &amp; MCDU programming · 10 days</p>
-                </td>
-              </tr>
-            </table>
+            <p style="color:#555;line-height:1.7;margin:0 0 20px;font-size:14px;">
+              This link expires in <strong>24 hours</strong>. If the button doesn't work, copy and paste this URL into your browser:
+            </p>
+            <p style="margin:0 0 28px;word-break:break-all;">
+              <a href="${verifyUrl}" style="color:#2196f3;font-size:13px;">${verifyUrl}</a>
+            </p>
 
             <p style="color:#888;font-size:13px;line-height:1.7;margin:0;">
-              For any questions, reply to this email or reach out directly to Capt. Jay Kotecha.<br/>
-              We look forward to flying with you.
+              Once verified, you'll be able to enrol in our A320 Pre-TR programmes. If you didn't create this account, you can safely ignore this email.
             </p>
           </td>
         </tr>
@@ -142,6 +131,25 @@ function welcomeEmailHtml(name) {
   </table>
 </body>
 </html>`;
+}
+
+// Build a 24h email-verification JWT + the verify-email.html link, and send it.
+// Reuses the same JWT/secret pattern as the forgot-password flow.
+function sendVerificationEmail(user) {
+  const verifyToken = jwt.sign(
+    { userId: user.id, email: user.email, purpose: 'verify' },
+    process.env.JWT_SECRET,
+    { expiresIn: '24h' }
+  );
+
+  const base = process.env.FRONTEND_URL || 'https://openclimbaviationacademy.com';
+  const verifyUrl = `${base.replace(/\/$/, '')}/verify-email.html?token=${encodeURIComponent(verifyToken)}`;
+
+  return sendEmail({
+    to:      user.email,
+    subject: 'Verify your email — Open Climb Aviation',
+    html:    verificationEmailHtml(user.name, verifyUrl)
+  }, 'Verification email');
 }
 
 function enquiryAdminHtml(data) {
@@ -351,25 +359,23 @@ router.post('/register', [
         name,
         email,
         password_hash,
-        whatsapp:  whatsapp  || null,
-        age:       age       ? parseInt(age) : null,
-        role:      'student'
+        whatsapp:       whatsapp  || null,
+        age:            age       ? parseInt(age) : null,
+        role:           'student',
+        email_verified: false
       })
-      .select('id, name, email, whatsapp, age, role, created_at')
+      .select('id, name, email, whatsapp, age, role, created_at, email_verified')
       .single();
 
     if (insertErr) throw insertErr;
 
     const token = signToken(user);
 
-    // Welcome email — fire-and-forget, don't block response
-    sendEmail({
-      to:      user.email,
-      subject: 'Welcome to Open Climb Aviation ✈️',
-      html:    welcomeEmailHtml(user.name)
-    }, 'Welcome email');
+    // Verification email — fire-and-forget, don't block response. This doubles as
+    // the welcome email (greets + asks to verify), so we don't send a separate one.
+    sendVerificationEmail(user);
 
-    return ok(res, { token, user }, 'Account created successfully! Welcome aboard.', 201);
+    return ok(res, { token, user }, 'Account created! Please check your email to verify your address.', 201);
   } catch (err) {
     console.error('Register error:', err);
     return fail(res, 'Registration failed. Please try again.', [], 500);
@@ -391,7 +397,7 @@ router.post('/login', [
   try {
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, name, email, whatsapp, age, password_hash, role, created_at')
+      .select('id, name, email, whatsapp, age, password_hash, role, created_at, email_verified')
       .eq('email', email)
       .maybeSingle();
 
@@ -507,6 +513,81 @@ router.post('/reset-password', [
   } catch (err) {
     console.error('Reset-password error:', err);
     return fail(res, 'Could not reset your password. Please try again.', [], 500);
+  }
+});
+
+// ── POST /api/auth/verify-email ─────────────────────────────────────────────────
+// Confirms the JWT from the verification link and flips email_verified = true.
+// Also throttled by authLimiter via the /api/auth mount in server.js.
+router.post('/verify-email', [
+  body('token').notEmpty().withMessage('Verification token is required')
+], async (req, res) => {
+  if (!handleValidation(req, res)) return;
+
+  const { token } = req.body;
+
+  let payload;
+  try {
+    payload = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    return fail(res, 'This verification link is invalid or has expired. Please request a new one.', [], 400);
+  }
+
+  if (!payload || payload.purpose !== 'verify' || !payload.userId) {
+    return fail(res, 'This verification link is invalid or has expired. Please request a new one.', [], 400);
+  }
+
+  try {
+    const { data: updated, error: updateErr } = await supabase
+      .from('users')
+      .update({ email_verified: true })
+      .eq('id', payload.userId)
+      .select('id')
+      .maybeSingle();
+
+    if (updateErr) throw updateErr;
+    if (!updated) {
+      return fail(res, 'This verification link is invalid or has expired. Please request a new one.', [], 400);
+    }
+
+    return ok(res, {}, 'Your email has been verified. You can now enrol in our courses.');
+  } catch (err) {
+    console.error('Verify-email error:', err);
+    return fail(res, 'Could not verify your email. Please try again.', [], 500);
+  }
+});
+
+// ── POST /api/auth/resend-verification ────────────────────────────────────────────
+// Generic response (never reveals whether an account exists). If the account exists
+// and is still unverified, re-send the verification email. Throttled by authLimiter
+// via the /api/auth mount in server.js.
+router.post('/resend-verification', [
+  body('email')
+    .isEmail().withMessage('A valid email address is required')
+    .normalizeEmail()
+], async (req, res) => {
+  if (!handleValidation(req, res)) return;
+
+  const { email } = req.body;
+  const generic = 'If your account needs verification, a new link has been sent to your email.';
+
+  try {
+    const { data: user } = await supabase
+      .from('users')
+      .select('id, name, email, email_verified')
+      .ilike('email', email)
+      .maybeSingle();
+
+    // Only re-send for accounts that exist and are still unverified.
+    if (user && !user.email_verified) {
+      sendVerificationEmail(user);
+    }
+
+    return ok(res, {}, generic);
+  } catch (err) {
+    console.error('Resend-verification error:', err);
+    // Still return the generic message — don't expose internal errors.
+    return ok(res, {}, generic);
   }
 });
 
