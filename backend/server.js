@@ -9,6 +9,7 @@ const authRoutes       = require('./routes/auth');
 const enrollmentRoutes = require('./routes/enrollment');
 const paymentRoutes    = require('./routes/payment');
 const adminRoutes      = require('./routes/admin');
+const trackRoutes      = require('./routes/track');
 
 const app = express();
 
@@ -47,6 +48,19 @@ app.use(cors({
 // Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Visitor tracking — public, fire-and-forget. Mounted BEFORE the global limiter
+// so high-volume page-view beacons don't eat the main API rate-limit budget
+// (which would otherwise lock out real API calls behind shared/NAT IPs). It has
+// its own lightweight per-IP limiter instead.
+const trackLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests.' }
+});
+app.use('/api/track', trackLimiter, trackRoutes);
 
 // Global rate limiter — 100 requests per 15 minutes per IP
 const limiter = rateLimit({

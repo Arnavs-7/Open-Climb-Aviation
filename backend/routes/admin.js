@@ -160,7 +160,7 @@ router.get('/enrollments', [
   try {
     let q = supabase
       .from('enrollments')
-      .select('id, status, enrolled_at, payment_id, upi_utr, users(id, name, email, whatsapp, age), courses(id, name, price, duration_days)')
+      .select('id, status, enrolled_at, payment_id, upi_utr, coupon_code, paid_amount, users(id, name, email, whatsapp, age), courses(id, name, price, duration_days)')
       .order('enrolled_at', { ascending: false });
 
     if (req.query.status) q = q.eq('status', req.query.status);
@@ -406,6 +406,140 @@ router.get('/payments', async (req, res) => {
   } catch (err) {
     console.error('Payments fetch error:', err);
     return fail(res, 'Failed to fetch payments.', [], 500);
+  }
+});
+
+// ── GET /api/admin/coupons ────────────────────────────────────────────────────
+// Aggregates coupon usage across enrollments: per code, the total number of
+// enrollments that applied it, a per-course breakdown, and the total discount
+// given (course.price - paid_amount, summed over rows where both are known).
+router.get('/coupons', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('enrollments')
+      .select('id, coupon_code, paid_amount, courses(name, price)')
+      .not('coupon_code', 'is', null);
+
+    if (error) throw error;
+
+    // code -> { count, by_course: Map(courseName -> { count, discount_paise, discount_known }) }
+    const byCode = new Map();
+
+    (data || []).forEach(e => {
+      const code = (e.coupon_code || '').trim().toUpperCase();
+      if (!code) return;
+      const courseName = e.courses?.name || 'Unknown course';
+
+      if (!byCode.has(code)) byCode.set(code, { count: 0, courses: new Map() });
+      const entry = byCode.get(code);
+      entry.count += 1;
+
+      if (!entry.courses.has(courseName)) {
+        entry.courses.set(courseName, { count: 0, discount_paise: 0 });
+      }
+      const c = entry.courses.get(courseName);
+      c.count += 1;
+
+      // Discount is only computable when we know both the original price and
+      // the post-coupon paid amount (older enrollments may predate paid_amount).
+      const price = e.courses?.price;
+      if (price != null && e.paid_amount != null) {
+        c.discount_paise += Math.max(0, price - e.paid_amount);
+      }
+    });
+
+    const coupons = [...byCode.entries()].map(([code, entry]) => {
+      const by_course = [...entry.courses.entries()]
+        .map(([course, c]) => ({
+          course,
+          count: c.count,
+          discount_inr: Math.round(c.discount_paise / 100)
+        }))
+        .sort((a, b) => b.count - a.count);
+
+      const total_discount_inr = by_course.reduce((s, c) => s + c.discount_inr, 0);
+
+      return {
+        code,
+        total_count: entry.count,
+        total_discount_inr,
+        by_course
+      };
+    }).sort((a, b) => b.total_count - a.total_count);
+
+    return ok(res, { coupons }, `${coupons.length} coupon code(s) used.`);
+  } catch (err) {
+    console.error('Coupons fetch error:', err);
+    return fail(res, 'Failed to fetch coupon usage.', [], 500);
+  }
+});
+
+// ── GET /api/admin/visitors ───────────────────────────────────────────────────
+// Self-hosted visitor stats from the page_views table: all-time totals, today's
+// figures, and a last-7-days daily breakdown. All bucketing is done in UTC (Render
+// runs UTC), consistent with how created_at is stored.
+router.get('/visitors', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('page_views')
+      .select('visitor_id, created_at')
+      .order('created_at', { ascending: false })
+      .range(0, 99999);   // generous cap; comfortably covers current scale
+
+    if (error) throw error;
+    const rows = data || [];
+
+    const now = new Date();
+    const startOfTodayMs = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+
+    // Build the last-7-days skeleton (oldest → newest) keyed by YYYY-MM-DD (UTC).
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const ms = startOfTodayMs - i * 86400000;
+      const d  = new Date(ms);
+      days.push({
+        key:    d.toISOString().slice(0, 10),
+        date:   d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', timeZone: 'UTC' }),
+        views:  0,
+        _uniq:  new Set()
+      });
+    }
+    const dayMap = new Map(days.map(d => [d.key, d]));
+
+    const allUniq   = new Set();
+    const todayUniq = new Set();
+    let viewsToday  = 0;
+
+    rows.forEach(r => {
+      const vid = r.visitor_id || null;
+      if (vid) allUniq.add(vid);
+
+      const t = new Date(r.created_at).getTime();
+      if (t >= startOfTodayMs) {
+        viewsToday++;
+        if (vid) todayUniq.add(vid);
+      }
+
+      const key = new Date(r.created_at).toISOString().slice(0, 10);
+      const bucket = dayMap.get(key);
+      if (bucket) {
+        bucket.views++;
+        if (vid) bucket._uniq.add(vid);
+      }
+    });
+
+    const daily = days.map(d => ({ date: d.date, views: d.views, uniques: d._uniq.size }));
+
+    return ok(res, {
+      total_views:   rows.length,
+      total_unique:  allUniq.size,
+      views_today:   viewsToday,
+      unique_today:  todayUniq.size,
+      daily
+    }, 'Visitor stats fetched.');
+  } catch (err) {
+    console.error('Visitors fetch error:', err);
+    return fail(res, 'Failed to fetch visitor stats.', [], 500);
   }
 });
 

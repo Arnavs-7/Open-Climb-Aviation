@@ -1923,6 +1923,25 @@ async function doRegister() {
   } catch { msgEl.className='modal-msg err'; msgEl.textContent='Network error.'; }
 }
 
+/* ── Self-hosted visit tracking (fire-and-forget; never blocks the page) ── */
+(function trackVisit() {
+  try {
+    let vid = localStorage.getItem('oca_visitor');
+    if (!vid) {
+      vid = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : 'v-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+      localStorage.setItem('oca_visitor', vid);
+    }
+    fetch(API_BASE + '/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: location.pathname, visitor_id: vid }),
+      keepalive: true
+    }).catch(() => {});
+  } catch (e) { /* tracking must never break the page */ }
+})();
+
 /* ── Init ── */
 renderNav();
 loadCourses();
