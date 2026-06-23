@@ -2,12 +2,106 @@ const express = require('express');
 const router  = express.Router();
 const { body, param, query, validationResult } = require('express-validator');
 const { createClient } = require('@supabase/supabase-js');
+const { Resend }  = require('resend');
 const { verifyToken, verifyAdmin } = require('../middleware/auth');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
+
+// ── Email via Resend (HTTP API) ───────────────────────────────────────────────
+// Mirrors backend/routes/payment.js: send from the verified custom domain,
+// replies route to ADMIN_EMAIL. Only build the client when the key is present so
+// the server still boots without it (the Resend constructor throws on a missing key).
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const MAIL_FROM     = 'Open Climb Aviation <noreply@openclimbaviationacademy.com>';
+const MAIL_REPLY_TO = process.env.ADMIN_EMAIL || 'training.ocaa@gmail.com';
+
+// Fire-and-forget sender with error logging (never throws to the caller).
+function sendEmail({ to, subject, html }, label = 'Email') {
+  if (!resend) {
+    console.warn(`${label} skipped — RESEND_API_KEY not set`);
+    return Promise.resolve();
+  }
+  return resend.emails
+    .send({ from: MAIL_FROM, replyTo: MAIL_REPLY_TO, to, subject, html })
+    .then(({ error }) => { if (error) console.error(`${label} failed:`, error.message || error); })
+    .catch(err => console.error(`${label} failed:`, err.message));
+}
+
+// Enrollment-activated confirmation email (mirrors the payment.js student template).
+function enrollmentActiveHtml({ studentName, courseName }) {
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background:#f4f7fb;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7fb;padding:40px 0;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+  <!-- Header -->
+  <tr><td style="background:#0d1b2a;border-radius:14px 14px 0 0;padding:36px 40px;text-align:center;">
+    <h1 style="margin:0;color:#f5a623;font-size:24px;letter-spacing:1px;">Open Climb Aviation</h1>
+    <p style="margin:8px 0 0;color:rgba(255,255,255,0.55);font-size:12px;letter-spacing:2px;text-transform:uppercase;">A320 Pre-Type Rating Training</p>
+  </td></tr>
+
+  <!-- Confirmation banner -->
+  <tr><td style="background:#27ae60;padding:18px 40px;text-align:center;">
+    <p style="margin:0;color:#fff;font-size:16px;font-weight:700;">&#10003;&nbsp; Payment Verified — Enrollment Active!</p>
+  </td></tr>
+
+  <!-- Body -->
+  <tr><td style="background:#fff;padding:40px;">
+    <h2 style="color:#0d1b2a;margin:0 0 16px;">You're enrolled, ${studentName}! ✈️</h2>
+    <p style="color:#555;line-height:1.8;margin:0 0 20px;">
+      Great news — your payment for <strong>${courseName}</strong> has been verified and your
+      enrollment is now <strong style="color:#27ae60;">active</strong>.
+    </p>
+    <p style="color:#555;line-height:1.8;margin:0 0 28px;">
+      You can log in to your dashboard any time to view your course details, study materials
+      and progress.
+    </p>
+
+    <!-- CTA -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
+      <tr><td align="center">
+        <a href="https://openclimbaviationacademy.com/dashboard.html"
+           style="display:inline-block;background:#f5a623;color:#0d1b2a;font-weight:700;font-size:14px;text-decoration:none;padding:14px 34px;border-radius:8px;">
+          Go to My Dashboard
+        </a>
+      </td></tr>
+    </table>
+
+    <!-- Contact box -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#fff8e8;border:1px solid #f5a623;border-radius:10px;margin-bottom:24px;">
+      <tr><td style="padding:18px 22px;">
+        <p style="margin:0 0 6px;color:#0d1b2a;font-weight:700;font-size:13px;">&#128222;&nbsp; Contact Capt. Jay Kotecha</p>
+        <p style="margin:0;color:#555;font-size:13px;">
+          Email: <a href="mailto:${process.env.ADMIN_EMAIL}" style="color:#2196f3;">${process.env.ADMIN_EMAIL}</a>
+        </p>
+      </td></tr>
+    </table>
+
+    <p style="color:#555;line-height:1.8;margin:0;">
+      Welcome aboard, and see you in the cockpit.<br/>
+      <strong style="color:#0d1b2a;">Capt. Jay Kotecha</strong><br/>
+      <span style="color:#888;font-size:13px;">Open Climb Aviation</span>
+    </p>
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td style="background:#0d1b2a;border-radius:0 0 14px 14px;padding:22px 40px;text-align:center;">
+    <p style="margin:0;color:rgba(255,255,255,0.4);font-size:12px;">&copy; 2025 Open Climb Aviation &nbsp;|&nbsp; Capt. Jay Kotecha</p>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>`;
+}
 
 // ── All admin routes require both middlewares ─────────────────────────────────
 router.use(verifyToken, verifyAdmin);
@@ -184,6 +278,14 @@ router.patch('/enrollments/:id', [
   if (!handleValidation(req, res)) return;
 
   try {
+    // Read the current status first so we only email on a genuine transition
+    // into "active" (avoids duplicate emails on repeated saves of the same status).
+    const { data: prev } = await supabase
+      .from('enrollments')
+      .select('status')
+      .eq('id', req.params.id)
+      .single();
+
     const { data, error } = await supabase
       .from('enrollments')
       .update({ status: req.body.status })
@@ -192,6 +294,19 @@ router.patch('/enrollments/:id', [
       .single();
 
     if (error || !data) return fail(res, 'Enrollment not found.', [], 404);
+
+    // Notify the student when their enrollment becomes active for the first time.
+    // Fire-and-forget: never block or fail the status update on email errors.
+    if (req.body.status === 'active' && prev?.status !== 'active' && data.users?.email) {
+      sendEmail({
+        to:      data.users.email,
+        subject: "Payment Confirmed — You're enrolled! ✈️",
+        html:    enrollmentActiveHtml({
+          studentName: data.users.name || 'there',
+          courseName:  data.courses?.name || 'your course'
+        })
+      }, 'Enrollment-active email');
+    }
 
     return ok(res, { enrollment: data }, 'Enrollment status updated.');
   } catch (err) {
