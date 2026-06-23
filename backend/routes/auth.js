@@ -239,6 +239,73 @@ function enquiryStudentHtml(name, courseInterest) {
 </html>`;
 }
 
+function resetPasswordHtml(resetUrl) {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+</head>
+<body style="margin:0;padding:0;background:#f4f7fb;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7fb;padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:#0d1b2a;border-radius:14px 14px 0 0;padding:36px 40px;text-align:center;">
+            <h1 style="margin:0;color:#f5a623;font-size:24px;letter-spacing:1px;">Open Climb Aviation</h1>
+            <p style="margin:8px 0 0;color:rgba(255,255,255,0.6);font-size:13px;letter-spacing:2px;text-transform:uppercase;">Password Reset</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="background:#ffffff;padding:40px;">
+            <h2 style="color:#0d1b2a;margin:0 0 16px;">Reset your password</h2>
+            <p style="color:#555;line-height:1.8;margin:0 0 20px;">
+              We received a request to reset the password for your Open Climb Aviation account. Click the button below to choose a new password.
+            </p>
+
+            <!-- CTA -->
+            <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+              <tr>
+                <td style="background:#f5a623;border-radius:8px;padding:14px 32px;">
+                  <a href="${resetUrl}" style="color:#0d1b2a;font-weight:700;font-size:15px;text-decoration:none;">Reset Password →</a>
+                </td>
+              </tr>
+            </table>
+
+            <p style="color:#555;line-height:1.7;margin:0 0 20px;font-size:14px;">
+              This link expires in <strong>30 minutes</strong>. If the button doesn't work, copy and paste this URL into your browser:
+            </p>
+            <p style="margin:0 0 28px;word-break:break-all;">
+              <a href="${resetUrl}" style="color:#2196f3;font-size:13px;">${resetUrl}</a>
+            </p>
+
+            <p style="color:#888;font-size:13px;line-height:1.7;margin:0;">
+              If you didn't request a password reset, you can safely ignore this email — your password won't change.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#0d1b2a;border-radius:0 0 14px 14px;padding:22px 40px;text-align:center;">
+            <p style="margin:0;color:rgba(255,255,255,0.45);font-size:12px;">
+              &copy; 2025 Open Climb Aviation &nbsp;|&nbsp; by Capt. Jay Kotecha
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 // ── POST /api/auth/register ───────────────────────────────────────────────────
 router.post('/register', [
   body('name')
@@ -345,6 +412,101 @@ router.post('/login', [
   } catch (err) {
     console.error('Login error:', err);
     return fail(res, 'Login failed. Please try again.', [], 500);
+  }
+});
+
+// ── POST /api/auth/forgot-password ──────────────────────────────────────────────
+// Rate limiting: this route is mounted under /api/auth, which server.js wraps in
+// authLimiter, so it's already throttled (20 req / 15 min per IP) — no extra limiter
+// needed here.
+router.post('/forgot-password', [
+  body('email')
+    .isEmail().withMessage('A valid email address is required')
+    .normalizeEmail()
+], async (req, res) => {
+  if (!handleValidation(req, res)) return;
+
+  const { email } = req.body;
+  // Generic response used for every outcome so we never reveal which emails exist.
+  const generic = 'If an account exists for that email, a reset link has been sent.';
+
+  try {
+    // Case-insensitive lookup (ilike with no wildcards = exact, case-insensitive match)
+    const { data: user } = await supabase
+      .from('users')
+      .select('id, email')
+      .ilike('email', email)
+      .maybeSingle();
+
+    if (user) {
+      const resetToken = jwt.sign(
+        { userId: user.id, email: user.email, purpose: 'pwreset' },
+        process.env.JWT_SECRET,
+        { expiresIn: '30m' }
+      );
+
+      const base = process.env.FRONTEND_URL || 'https://openclimbaviationacademy.com';
+      const resetUrl = `${base.replace(/\/$/, '')}/reset-password.html?token=${encodeURIComponent(resetToken)}`;
+
+      // Fire-and-forget — don't block the response or leak timing/existence.
+      sendEmail({
+        to:      user.email,
+        subject: 'Reset your Open Climb Aviation password',
+        html:    resetPasswordHtml(resetUrl)
+      }, 'Password reset email');
+    }
+
+    return ok(res, {}, generic);
+  } catch (err) {
+    console.error('Forgot-password error:', err);
+    // Still return the generic message — don't expose internal errors to the client.
+    return ok(res, {}, generic);
+  }
+});
+
+// ── POST /api/auth/reset-password ───────────────────────────────────────────────
+// Also throttled by authLimiter via the /api/auth mount in server.js.
+router.post('/reset-password', [
+  body('token')
+    .notEmpty().withMessage('Reset token is required'),
+  body('password')
+    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+    .custom(v => (v || '').trim().length > 0).withMessage('Password cannot be only spaces')
+], async (req, res) => {
+  if (!handleValidation(req, res)) return;
+
+  const { token, password } = req.body;
+
+  let payload;
+  try {
+    payload = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    return fail(res, 'This reset link is invalid or has expired. Please request a new one.', [], 400);
+  }
+
+  if (!payload || payload.purpose !== 'pwreset' || !payload.userId) {
+    return fail(res, 'This reset link is invalid or has expired. Please request a new one.', [], 400);
+  }
+
+  try {
+    const password_hash = await bcrypt.hash(password, 12);
+
+    const { data: updated, error: updateErr } = await supabase
+      .from('users')
+      .update({ password_hash })
+      .eq('id', payload.userId)
+      .select('id')
+      .maybeSingle();
+
+    if (updateErr) throw updateErr;
+    if (!updated) {
+      return fail(res, 'This reset link is invalid or has expired. Please request a new one.', [], 400);
+    }
+
+    return ok(res, {}, 'Your password has been reset. You can now log in with your new password.');
+  } catch (err) {
+    console.error('Reset-password error:', err);
+    return fail(res, 'Could not reset your password. Please try again.', [], 500);
   }
 });
 

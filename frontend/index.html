@@ -1207,7 +1207,7 @@
       <button class="modal-x" onclick="closeAuthModal()">&#x2715;</button>
     </div>
     <div class="modal-body">
-      <div class="modal-tabs">
+      <div class="modal-tabs" id="modalTabs">
         <button class="mtab active" id="mtabLogin"    onclick="switchAuthTab('login')">LOGIN</button>
         <button class="mtab"        id="mtabRegister" onclick="switchAuthTab('register')">REGISTER</button>
       </div>
@@ -1215,6 +1215,13 @@
         <div class="modal-fgroup"><label>Email</label><input type="email" id="loginEmail" placeholder="you@email.com" onkeydown="if(event.key==='Enter')doLogin()"/></div>
         <div class="modal-fgroup"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
         <button class="btn btn-gold" style="width:100%;padding:13px;margin-top:6px" onclick="doLogin()">LOGIN</button>
+        <p style="text-align:center;margin-top:14px;font-size:0.8rem"><a href="#" onclick="showForgot();return false" style="color:var(--gold);font-weight:600">Forgot password?</a></p>
+      </div>
+      <div id="panelForgot" style="display:none">
+        <p style="font-size:0.85rem;color:var(--muted);line-height:1.6;margin-bottom:16px">Enter your account email and we'll send you a link to reset your password.</p>
+        <div class="modal-fgroup"><label>Email</label><input type="email" id="forgotEmail" placeholder="you@email.com" onkeydown="if(event.key==='Enter')doForgot()"/></div>
+        <button class="btn btn-gold" style="width:100%;padding:13px;margin-top:6px" onclick="doForgot()">SEND RESET LINK</button>
+        <p style="text-align:center;margin-top:14px;font-size:0.8rem"><a href="#" onclick="switchAuthTab('login');return false" style="color:var(--muted);font-weight:600">← Back to login</a></p>
       </div>
       <div id="panelRegister" style="display:none">
         <div class="modal-fgroup"><label>Full Name *</label><input type="text" id="regName" placeholder="Your name"/></div>
@@ -1834,11 +1841,37 @@ document.getElementById('authOverlay').addEventListener('click', e => { if (e.ta
 function switchAuthTab(tab) {
   document.getElementById('panelLogin').style.display    = tab === 'login'    ? 'block' : 'none';
   document.getElementById('panelRegister').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('panelForgot').style.display   = 'none';
+  document.getElementById('modalTabs').style.display     = 'flex';
   document.getElementById('mtabLogin').classList.toggle('active',    tab === 'login');
   document.getElementById('mtabRegister').classList.toggle('active', tab === 'register');
   document.getElementById('modalHeading').textContent = tab === 'login' ? 'Welcome Back'    : 'Create Account';
   document.getElementById('modalSub').textContent     = tab === 'login' ? 'Sign in to your account' : 'Join Open Climb Aviation';
   document.getElementById('authMsg').textContent = '';
+}
+
+function showForgot() {
+  document.getElementById('panelLogin').style.display    = 'none';
+  document.getElementById('panelRegister').style.display = 'none';
+  document.getElementById('panelForgot').style.display   = 'block';
+  document.getElementById('modalTabs').style.display     = 'none';
+  document.getElementById('modalHeading').textContent = 'Reset Password';
+  document.getElementById('modalSub').textContent     = 'We\'ll email you a reset link';
+  document.getElementById('authMsg').textContent = '';
+}
+
+async function doForgot() {
+  const msgEl = document.getElementById('authMsg');
+  msgEl.className = 'modal-msg'; msgEl.textContent = '';
+  const email = document.getElementById('forgotEmail').value.trim();
+  if (!email) { msgEl.className='modal-msg err'; msgEl.textContent='Please enter your email.'; return; }
+  try {
+    const json = await apiCall('/auth/forgot-password', 'POST', { email });
+    // Backend always returns a generic success message regardless of whether the
+    // email exists, so show it as-is.
+    msgEl.className = 'modal-msg ok';
+    msgEl.textContent = json.message || 'If an account exists for that email, a reset link has been sent.';
+  } catch { msgEl.className='modal-msg err'; msgEl.textContent='Network error. Please try again.'; }
 }
 
 async function doLogin() {
